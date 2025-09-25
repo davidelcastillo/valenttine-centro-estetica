@@ -1,6 +1,100 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+
+
+//import { crearPaciente } from '@/lib/api/pacientes'
+
+/*
+
+import { PacienteDTO } from "@/lib/types/pacientes.dto"
+
+async function onSubmit(data: PacienteDTO) {
+  try {
+    const response = await crearPaciente(data)
+    console.log('Paciente registrado:', response)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+*/
+
+interface Patient {
+  id: string
+  fullName: string
+  lastName: string
+  dni: string
+  status: "Activo" | "Inactivo" | "Suspendido"
+}
+
+/*
+export default function ListaPacientes() {
+  const [patients, setPatients] = useState<Patient[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const res = await fetch("/api/pacientes")
+        if (!res.ok) throw new Error("Error al cargar pacientes")
+        const data = await res.json()
+        setPatients(data)
+      } catch (err: any) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPatients()
+  }, [])
+
+  if (loading) return <p>Cargando pacientes...</p>
+  if (error) return <p className="text-red-500">Error: {error}</p>
+
+  return (
+    <div>
+      <h2 className="text-2xl font-bold mb-4">Lista de Pacientes</h2>
+      {patients.length === 0 ? (
+        <p>No hay pacientes registrados</p>
+      ) : (
+        <ul className="space-y-2">
+          {patients.map((p) => (
+            <li key={p.id} className="p-4 border rounded-lg shadow-sm">
+              <p><strong>{p.fullName} {p.lastName}</strong></p>
+              <p>DNI: {p.dni}</p>
+              <p>Estado: {p.status}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+*/
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const formData = {
+    nombre: nombre,
+    apellido: apellido,
+    dni: dni,
+    // etc según tus campos
+  };
+
+  const res = await fetch("/api/pacientes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(formData),
+  });
+
+  const data = await res.json();
+  console.log("Respuesta backend:", data);
+};
 
 interface Patient {
   id: string
@@ -58,6 +152,7 @@ export default function PatientManagementModule() {
     memberNumber: "",
     plan: "",
   })
+
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({})
 
@@ -251,7 +346,7 @@ export default function PatientManagementModule() {
 
     if (!newPatientForm.phone.trim()) {
       errors.phone = "El número de celular es obligatorio"
-    } else if (!/^$$\d{3}$$\d{7}$/.test(newPatientForm.phone)) {
+    } else if (!/^\(\d{3}\)\d{7}$/.test(newPatientForm.phone)) {
       errors.phone = "Número inválido, revise el formato"
     }
 
