@@ -1,5 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import { useInactivityLogout } from '@/hooks/useInactivityLogout'
+import AppHeader from '@/components/AppHeader'
 
 
 export const metadata: Metadata = {
