@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 
 const NAV = [
 { label: 'Dashboard', href: '/dashboard', roles: ['Recepcionista','Médico','Gerente'] },
-{ label: 'Pacientes', href: '/pacientes', roles: ['Recepcionista','Gerente'] },
+{ label: 'Pacientes', href: '/Pacientes', roles: ['Recepcionista','Gerente'] },
 { label: 'Profesionales', href: '/profesionales', roles: ['Gerente'] },
 { label: 'Turnos', href: '/turnos', roles: ['Recepcionista','Médico','Gerente'] },
 ]
