@@ -1,26 +1,27 @@
 import { z } from "zod";
 
-export const Roles = ["RECEPCIONISTA", "MEDICO", "GERENTE"] as const;
+// Roles de usuario
+export const Roles = ["RECEPCIONISTA","MEDICO","GERENTE"] as const;
 export type Role = typeof Roles[number];
-export const RoleSchema = z.enum(Roles);
+export type JwtUser = { sub: string; email: string; role: Role; username: string };
 
-export type JwtUser = { sub: string; email: string; role: Role };
-
+// --- Login por usuario ---
 export const LoginBodySchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(4),
+  username: z.string().min(1).max(11).regex(/^\S+$/, "sin espacios"),
+  password: z.string().min(1).max(11).regex(/^\S+$/, "sin espacios"),
 });
 export type LoginBody = z.infer<typeof LoginBodySchema>;
 
 export const UserPublicSchema = z.object({
-  id: z.string(),            // id viene como number en BD, lo convertimos a string al responder
-  name: z.string(),
+  id: z.string(),
+  username: z.string(),
   email: z.string().email(),
+  role: z.enum(Roles),
 });
 
 export const LoginSuccessSchema = z.object({
   message: z.string().optional(),
-  role: RoleSchema,
+  role: z.enum(Roles),
   user: UserPublicSchema,
   token: z.string(),
 });
