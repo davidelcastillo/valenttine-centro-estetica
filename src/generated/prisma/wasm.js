@@ -92,9 +92,193 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
+exports.Prisma.UsuarioScalarFieldEnum = {
+  id: 'id',
+  username: 'username',
+  contraseña: 'contraseña',
+  rol: 'rol',
+  email: 'email',
+  creadoEn: 'creadoEn',
+  actualizadoEn: 'actualizadoEn'
+};
+
+exports.Prisma.ProvinciaScalarFieldEnum = {
+  id: 'id',
+  nombre: 'nombre'
+};
+
+exports.Prisma.LocalidadScalarFieldEnum = {
+  id: 'id',
+  nombre: 'nombre',
+  provinciaId: 'provinciaId'
+};
+
+exports.Prisma.ObraSocialScalarFieldEnum = {
+  id: 'id',
+  nombre: 'nombre'
+};
+
+exports.Prisma.PrestacionScalarFieldEnum = {
+  id: 'id',
+  nombre: 'nombre',
+  descripcion: 'descripcion'
+};
+
+exports.Prisma.PacienteScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  creadoPorId: 'creadoPorId',
+  numeroInterno: 'numeroInterno',
+  nombre: 'nombre',
+  apellido: 'apellido',
+  dni: 'dni',
+  fechaNacimiento: 'fechaNacimiento',
+  genero: 'genero',
+  estadoCivil: 'estadoCivil',
+  pais: 'pais',
+  provinciaId: 'provinciaId',
+  localidadId: 'localidadId',
+  barrio: 'barrio',
+  calle: 'calle',
+  numero: 'numero',
+  celular: 'celular',
+  email: 'email',
+  obraSocialId: 'obraSocialId',
+  numeroSocio: 'numeroSocio',
+  plan: 'plan',
+  estado: 'estado',
+  creadoEn: 'creadoEn',
+  actualizadoEn: 'actualizadoEn'
+};
+
+exports.Prisma.ProfesionalScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  creadoPorId: 'creadoPorId',
+  numeroInterno: 'numeroInterno',
+  nombre: 'nombre',
+  apellido: 'apellido',
+  dni: 'dni',
+  fechaNacimiento: 'fechaNacimiento',
+  genero: 'genero',
+  estadoCivil: 'estadoCivil',
+  pais: 'pais',
+  provinciaId: 'provinciaId',
+  localidadId: 'localidadId',
+  barrio: 'barrio',
+  calle: 'calle',
+  numero: 'numero',
+  celular: 'celular',
+  email: 'email',
+  titulo: 'titulo',
+  matricula: 'matricula',
+  especialidad: 'especialidad',
+  universidad: 'universidad',
+  fechaGraduacion: 'fechaGraduacion',
+  horarioTrabajo: 'horarioTrabajo',
+  creadoEn: 'creadoEn',
+  actualizadoEn: 'actualizadoEn'
+};
+
+exports.Prisma.PrestacionXProfesionalScalarFieldEnum = {
+  id: 'id',
+  profesionalId: 'profesionalId',
+  prestacionId: 'prestacionId'
+};
+
+exports.Prisma.ObraSocialXProfesionalScalarFieldEnum = {
+  id: 'id',
+  profesionalId: 'profesionalId',
+  obraSocialId: 'obraSocialId'
+};
+
+exports.Prisma.TurnoScalarFieldEnum = {
+  id: 'id',
+  pacienteId: 'pacienteId',
+  profesionalId: 'profesionalId',
+  fecha: 'fecha',
+  hora: 'hora',
+  estado: 'estado',
+  creadoEn: 'creadoEn'
+};
+
+exports.Prisma.DetalleTurnoScalarFieldEnum = {
+  id: 'id',
+  turnoId: 'turnoId',
+  descripcion: 'descripcion',
+  observacion: 'observacion',
+  creadoEn: 'creadoEn'
+};
+
+exports.Prisma.CentroMedicoScalarFieldEnum = {
+  id: 'id',
+  nombre: 'nombre',
+  direccion: 'direccion',
+  telefono: 'telefono',
+  email: 'email'
+};
+
+exports.Prisma.SortOrder = {
+  asc: 'asc',
+  desc: 'desc'
+};
+
+exports.Prisma.QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+};
+
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
+};
+exports.Rol = exports.$Enums.Rol = {
+  RECEPCIONISTA: 'RECEPCIONISTA',
+  MEDICO: 'MEDICO',
+  GERENTE: 'GERENTE'
+};
+
+exports.Genero = exports.$Enums.Genero = {
+  FEMENINO: 'FEMENINO',
+  MASCULINO: 'MASCULINO',
+  OTRO: 'OTRO'
+};
+
+exports.EstadoCivil = exports.$Enums.EstadoCivil = {
+  SOLTERO: 'SOLTERO',
+  CASADO: 'CASADO',
+  DIVORCIADO: 'DIVORCIADO',
+  VIUDO: 'VIUDO',
+  UNION_LIBRE: 'UNION_LIBRE'
+};
+
+exports.EstadoPaciente = exports.$Enums.EstadoPaciente = {
+  ACTIVO: 'ACTIVO',
+  INACTIVO: 'INACTIVO',
+  SUSPENDIDO: 'SUSPENDIDO',
+  FALLECIDO: 'FALLECIDO'
+};
+
+exports.EstadoTurno = exports.$Enums.EstadoTurno = {
+  PENDIENTE: 'PENDIENTE',
+  CONFIRMADO: 'CONFIRMADO',
+  CANCELADO: 'CANCELADO',
+  COMPLETADO: 'COMPLETADO'
+};
 
 exports.Prisma.ModelName = {
-
+  Usuario: 'Usuario',
+  Provincia: 'Provincia',
+  Localidad: 'Localidad',
+  ObraSocial: 'ObraSocial',
+  Prestacion: 'Prestacion',
+  Paciente: 'Paciente',
+  Profesional: 'Profesional',
+  PrestacionXProfesional: 'PrestacionXProfesional',
+  ObraSocialXProfesional: 'ObraSocialXProfesional',
+  Turno: 'Turno',
+  DetalleTurno: 'DetalleTurno',
+  CentroMedico: 'CentroMedico'
 };
 /**
  * Create the Client
@@ -107,7 +291,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "R:\\Ucasal\\Proyecto IngSW\\valenttine-centro-estetica\\src\\generated\\prisma",
+      "value": "D:\\ing-sw\\valenttine-estetica\\src\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -121,11 +305,11 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "R:\\Ucasal\\Proyecto IngSW\\valenttine-centro-estetica\\prisma\\schema.prisma",
+    "sourceFilePath": "D:\\ing-sw\\valenttine-estetica\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": "../../../.env",
+    "rootEnvPath": null,
     "schemaEnvPath": "../../../.env"
   },
   "relativePath": "../../../prisma",
@@ -135,7 +319,6 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
@@ -144,13 +327,13 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../src/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n",
-  "inlineSchemaHash": "f4defb510352aeb258e32fd0e4e744b44176032e921a554a415dd34c135bd53c",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../src/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\n// -----------------------------\n// Gestión de Acceso\n// -----------------------------\nmodel Usuario {\n  id            Int      @id @default(autoincrement())\n  username      String   @unique @db.VarChar(11)\n  contraseña   String   @db.VarChar(72) // hash bcrypt recomendado\n  rol           Rol\n  email         String   @unique\n  creadoEn      DateTime @default(now())\n  actualizadoEn DateTime @updatedAt\n\n  // relación 1:1 al profesional y paciente (si el usuario es un profesional)\n  profesional Profesional? @relation(\"ProfesionalUsuario\")\n\n  paciente         Paciente?  @relation(\"PacienteUsuario\")\n  // relación 1:N: los pacientes creados por este usuario (auditoría)\n  pacientesCreados Paciente[] @relation(\"PacienteCreadoPor\")\n\n  // relación 1:N: los profesionales creados por este usuario (auditoría)\n  profesionalesCreados Profesional[] @relation(\"ProfesionalCreadoPor\")\n}\n\nenum Rol {\n  RECEPCIONISTA\n  MEDICO\n  GERENTE\n}\n\n// -----------------------------\n// Ubicación / Geografía\n// -----------------------------\nmodel Provincia {\n  id     Int    @id @default(autoincrement())\n  nombre String @unique\n\n  pacientes     Paciente[]\n  profesionales Profesional[]\n  localidades   Localidad[]\n}\n\nmodel Localidad {\n  id          Int       @id @default(autoincrement())\n  nombre      String\n  provinciaId Int\n  provincia   Provincia @relation(fields: [provinciaId], references: [id])\n\n  pacientes     Paciente[]\n  profesionales Profesional[]\n}\n\n// -----------------------------\n// Obras Sociales\n// -----------------------------\nmodel ObraSocial {\n  id            Int                      @id @default(autoincrement())\n  nombre        String                   @unique\n  pacientes     Paciente[]\n  profesionales ObraSocialXProfesional[]\n}\n\n// -----------------------------\n// Prestaciones Médicas\n// -----------------------------\nmodel Prestacion {\n  id            Int                      @id @default(autoincrement())\n  nombre        String\n  descripcion   String?\n  profesionales PrestacionXProfesional[]\n}\n\n// -----------------------------\n// Pacientes\n// -----------------------------\nmodel Paciente {\n  id              Int            @id @default(autoincrement())\n  userId          Int            @unique\n  usuario         Usuario        @relation(\"PacienteUsuario\", fields: [userId], references: [id])\n  creadoPorId     Int?\n  creadoPor       Usuario?       @relation(\"PacienteCreadoPor\", fields: [creadoPorId], references: [id])\n  numeroInterno   String         @unique\n  nombre          String\n  apellido        String\n  dni             String         @unique @db.VarChar(8)\n  fechaNacimiento DateTime\n  genero          Genero\n  estadoCivil     EstadoCivil\n  pais            String\n  provinciaId     Int\n  provincia       Provincia      @relation(fields: [provinciaId], references: [id])\n  localidadId     Int\n  localidad       Localidad      @relation(fields: [localidadId], references: [id])\n  barrio          String?\n  calle           String\n  numero          String\n  celular         String         @db.VarChar(15)\n  email           String\n  obraSocialId    Int\n  obraSocial      ObraSocial     @relation(fields: [obraSocialId], references: [id])\n  numeroSocio     String\n  plan            String\n  estado          EstadoPaciente @default(ACTIVO)\n  creadoEn        DateTime       @default(now())\n  actualizadoEn   DateTime       @updatedAt\n\n  turnos Turno[]\n}\n\nenum Genero {\n  FEMENINO\n  MASCULINO\n  OTRO\n}\n\nenum EstadoCivil {\n  SOLTERO\n  CASADO\n  DIVORCIADO\n  VIUDO\n  UNION_LIBRE\n}\n\nenum EstadoPaciente {\n  ACTIVO\n  INACTIVO\n  SUSPENDIDO\n  FALLECIDO\n}\n\n// -----------------------------\n// Profesionales\n// -----------------------------\nmodel Profesional {\n  id              Int         @id @default(autoincrement())\n  userId          Int         @unique\n  usuario         Usuario     @relation(\"ProfesionalUsuario\", fields: [userId], references: [id])\n  creadoPorId     Int?\n  creadoPor       Usuario?    @relation(\"ProfesionalCreadoPor\", fields: [creadoPorId], references: [id])\n  numeroInterno   String      @unique\n  nombre          String\n  apellido        String\n  dni             String      @unique @db.VarChar(8)\n  fechaNacimiento DateTime\n  genero          Genero\n  estadoCivil     EstadoCivil\n  pais            String\n  provinciaId     Int\n  provincia       Provincia   @relation(fields: [provinciaId], references: [id])\n  localidadId     Int\n  localidad       Localidad   @relation(fields: [localidadId], references: [id])\n  barrio          String?\n  calle           String\n  numero          String\n  celular         String      @db.VarChar(15)\n  email           String      @unique\n  titulo          String\n  matricula       String      @unique\n  especialidad    String\n  universidad     String\n  fechaGraduacion DateTime\n  horarioTrabajo  String // formato JSON (dias y horas)\n  creadoEn        DateTime    @default(now())\n  actualizadoEn   DateTime    @updatedAt\n\n  obrasSociales ObraSocialXProfesional[]\n  prestaciones  PrestacionXProfesional[]\n  turnos        Turno[]\n}\n\n// -----------------------------\n// Relación N:M Profesionales-Prestaciones\n// -----------------------------\nmodel PrestacionXProfesional {\n  id            Int         @id @default(autoincrement())\n  profesionalId Int\n  prestacionId  Int\n  profesional   Profesional @relation(fields: [profesionalId], references: [id])\n  prestacion    Prestacion  @relation(fields: [prestacionId], references: [id])\n}\n\n// -----------------------------\n// Relación N:M Profesionales-Obras Sociales\n// -----------------------------\nmodel ObraSocialXProfesional {\n  id            Int         @id @default(autoincrement())\n  profesionalId Int\n  obraSocialId  Int\n  profesional   Profesional @relation(fields: [profesionalId], references: [id])\n  obraSocial    ObraSocial  @relation(fields: [obraSocialId], references: [id])\n}\n\n// -----------------------------\n// Turnos\n// -----------------------------\nmodel Turno {\n  id            Int            @id @default(autoincrement())\n  pacienteId    Int\n  paciente      Paciente       @relation(fields: [pacienteId], references: [id])\n  profesionalId Int\n  profesional   Profesional    @relation(fields: [profesionalId], references: [id])\n  fecha         DateTime\n  hora          String\n  estado        EstadoTurno    @default(PENDIENTE)\n  creadoEn      DateTime       @default(now())\n  detalles      DetalleTurno[]\n}\n\nenum EstadoTurno {\n  PENDIENTE\n  CONFIRMADO\n  CANCELADO\n  COMPLETADO\n}\n\n// -----------------------------\n// Detalle Turno\n// -----------------------------\nmodel DetalleTurno {\n  id          Int      @id @default(autoincrement())\n  turnoId     Int\n  turno       Turno    @relation(fields: [turnoId], references: [id])\n  descripcion String\n  observacion String?\n  creadoEn    DateTime @default(now())\n}\n\n// -----------------------------\n// Centro Médico\n// -----------------------------\nmodel CentroMedico {\n  id        Int    @id @default(autoincrement())\n  nombre    String\n  direccion String\n  telefono  String\n  email     String\n}\n",
+  "inlineSchemaHash": "19fd6130f8ae225e17a533713924e5eee6a92cbaef1474fc68c76d22a63779fa",
   "copyEngine": true
 }
 config.dirname = '/'
 
-config.runtimeDataModel = JSON.parse("{\"models\":{},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"Usuario\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"username\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"contraseña\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"rol\",\"kind\":\"enum\",\"type\":\"Rol\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"creadoEn\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"actualizadoEn\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"profesional\",\"kind\":\"object\",\"type\":\"Profesional\",\"relationName\":\"ProfesionalUsuario\"},{\"name\":\"paciente\",\"kind\":\"object\",\"type\":\"Paciente\",\"relationName\":\"PacienteUsuario\"},{\"name\":\"pacientesCreados\",\"kind\":\"object\",\"type\":\"Paciente\",\"relationName\":\"PacienteCreadoPor\"},{\"name\":\"profesionalesCreados\",\"kind\":\"object\",\"type\":\"Profesional\",\"relationName\":\"ProfesionalCreadoPor\"}],\"dbName\":null},\"Provincia\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"nombre\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"pacientes\",\"kind\":\"object\",\"type\":\"Paciente\",\"relationName\":\"PacienteToProvincia\"},{\"name\":\"profesionales\",\"kind\":\"object\",\"type\":\"Profesional\",\"relationName\":\"ProfesionalToProvincia\"},{\"name\":\"localidades\",\"kind\":\"object\",\"type\":\"Localidad\",\"relationName\":\"LocalidadToProvincia\"}],\"dbName\":null},\"Localidad\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"nombre\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"provinciaId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"provincia\",\"kind\":\"object\",\"type\":\"Provincia\",\"relationName\":\"LocalidadToProvincia\"},{\"name\":\"pacientes\",\"kind\":\"object\",\"type\":\"Paciente\",\"relationName\":\"LocalidadToPaciente\"},{\"name\":\"profesionales\",\"kind\":\"object\",\"type\":\"Profesional\",\"relationName\":\"LocalidadToProfesional\"}],\"dbName\":null},\"ObraSocial\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"nombre\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"pacientes\",\"kind\":\"object\",\"type\":\"Paciente\",\"relationName\":\"ObraSocialToPaciente\"},{\"name\":\"profesionales\",\"kind\":\"object\",\"type\":\"ObraSocialXProfesional\",\"relationName\":\"ObraSocialToObraSocialXProfesional\"}],\"dbName\":null},\"Prestacion\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"nombre\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"descripcion\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"profesionales\",\"kind\":\"object\",\"type\":\"PrestacionXProfesional\",\"relationName\":\"PrestacionToPrestacionXProfesional\"}],\"dbName\":null},\"Paciente\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"usuario\",\"kind\":\"object\",\"type\":\"Usuario\",\"relationName\":\"PacienteUsuario\"},{\"name\":\"creadoPorId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"creadoPor\",\"kind\":\"object\",\"type\":\"Usuario\",\"relationName\":\"PacienteCreadoPor\"},{\"name\":\"numeroInterno\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"nombre\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"apellido\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"dni\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fechaNacimiento\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"genero\",\"kind\":\"enum\",\"type\":\"Genero\"},{\"name\":\"estadoCivil\",\"kind\":\"enum\",\"type\":\"EstadoCivil\"},{\"name\":\"pais\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"provinciaId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"provincia\",\"kind\":\"object\",\"type\":\"Provincia\",\"relationName\":\"PacienteToProvincia\"},{\"name\":\"localidadId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"localidad\",\"kind\":\"object\",\"type\":\"Localidad\",\"relationName\":\"LocalidadToPaciente\"},{\"name\":\"barrio\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"calle\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"numero\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"celular\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"obraSocialId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"obraSocial\",\"kind\":\"object\",\"type\":\"ObraSocial\",\"relationName\":\"ObraSocialToPaciente\"},{\"name\":\"numeroSocio\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"plan\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"estado\",\"kind\":\"enum\",\"type\":\"EstadoPaciente\"},{\"name\":\"creadoEn\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"actualizadoEn\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"turnos\",\"kind\":\"object\",\"type\":\"Turno\",\"relationName\":\"PacienteToTurno\"}],\"dbName\":null},\"Profesional\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"usuario\",\"kind\":\"object\",\"type\":\"Usuario\",\"relationName\":\"ProfesionalUsuario\"},{\"name\":\"creadoPorId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"creadoPor\",\"kind\":\"object\",\"type\":\"Usuario\",\"relationName\":\"ProfesionalCreadoPor\"},{\"name\":\"numeroInterno\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"nombre\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"apellido\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"dni\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fechaNacimiento\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"genero\",\"kind\":\"enum\",\"type\":\"Genero\"},{\"name\":\"estadoCivil\",\"kind\":\"enum\",\"type\":\"EstadoCivil\"},{\"name\":\"pais\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"provinciaId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"provincia\",\"kind\":\"object\",\"type\":\"Provincia\",\"relationName\":\"ProfesionalToProvincia\"},{\"name\":\"localidadId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"localidad\",\"kind\":\"object\",\"type\":\"Localidad\",\"relationName\":\"LocalidadToProfesional\"},{\"name\":\"barrio\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"calle\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"numero\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"celular\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"titulo\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"matricula\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"especialidad\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"universidad\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"fechaGraduacion\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"horarioTrabajo\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"creadoEn\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"actualizadoEn\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"obrasSociales\",\"kind\":\"object\",\"type\":\"ObraSocialXProfesional\",\"relationName\":\"ObraSocialXProfesionalToProfesional\"},{\"name\":\"prestaciones\",\"kind\":\"object\",\"type\":\"PrestacionXProfesional\",\"relationName\":\"PrestacionXProfesionalToProfesional\"},{\"name\":\"turnos\",\"kind\":\"object\",\"type\":\"Turno\",\"relationName\":\"ProfesionalToTurno\"}],\"dbName\":null},\"PrestacionXProfesional\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"profesionalId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"prestacionId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"profesional\",\"kind\":\"object\",\"type\":\"Profesional\",\"relationName\":\"PrestacionXProfesionalToProfesional\"},{\"name\":\"prestacion\",\"kind\":\"object\",\"type\":\"Prestacion\",\"relationName\":\"PrestacionToPrestacionXProfesional\"}],\"dbName\":null},\"ObraSocialXProfesional\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"profesionalId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"obraSocialId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"profesional\",\"kind\":\"object\",\"type\":\"Profesional\",\"relationName\":\"ObraSocialXProfesionalToProfesional\"},{\"name\":\"obraSocial\",\"kind\":\"object\",\"type\":\"ObraSocial\",\"relationName\":\"ObraSocialToObraSocialXProfesional\"}],\"dbName\":null},\"Turno\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"pacienteId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"paciente\",\"kind\":\"object\",\"type\":\"Paciente\",\"relationName\":\"PacienteToTurno\"},{\"name\":\"profesionalId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"profesional\",\"kind\":\"object\",\"type\":\"Profesional\",\"relationName\":\"ProfesionalToTurno\"},{\"name\":\"fecha\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"hora\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"estado\",\"kind\":\"enum\",\"type\":\"EstadoTurno\"},{\"name\":\"creadoEn\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"detalles\",\"kind\":\"object\",\"type\":\"DetalleTurno\",\"relationName\":\"DetalleTurnoToTurno\"}],\"dbName\":null},\"DetalleTurno\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"turnoId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"turno\",\"kind\":\"object\",\"type\":\"Turno\",\"relationName\":\"DetalleTurnoToTurno\"},{\"name\":\"descripcion\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"observacion\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"creadoEn\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"CentroMedico\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"nombre\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"direccion\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"telefono\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.engineWasm = {
   getRuntime: async () => require('./query_engine_bg.js'),
