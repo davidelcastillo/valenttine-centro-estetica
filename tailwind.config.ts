@@ -1,5 +1,5 @@
 import type { Config } from 'tailwindcss'
-
+import animate from 'tailwindcss-animate'
 
 export default {
 content: [
@@ -86,5 +86,5 @@ glow: '0 0 30px rgba(139,92,246,.3)'
 }
 },
 },
-plugins: [],
+plugins: [animate],
 } satisfies Config

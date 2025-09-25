@@ -1,7 +1,9 @@
+// src/components/ui/ConfirmDialog.tsx
 'use client'
 import React, { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/Button'   // 👈 usa tu botón
 
 type Props = {
   open: boolean
@@ -24,7 +26,6 @@ export function ConfirmDialog({
   onCancel,
   className
 }: Props) {
-  // Cerrar con ESC
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onCancel()
@@ -35,16 +36,10 @@ export function ConfirmDialog({
   if (!open) return null
 
   const modal = (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-[100] flex items-center justify-center"
-    >
+    <div role="dialog" aria-modal="true" className="fixed inset-0 z-[100] flex items-center justify-center">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40"
-        onClick={onCancel}
-      />
+      <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
+
       {/* Card */}
       <div
         className={cn(
@@ -57,25 +52,16 @@ export function ConfirmDialog({
         <p className="mt-2 text-sm text-gray-600">{description}</p>
 
         <div className="mt-6 flex items-center justify-end gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700"
-          >
+          <Button variant="outline" size="sm" onClick={onCancel}>
             {cancelText}
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
-          >
+          </Button>
+          <Button variant="destructive" size="sm" onClick={onConfirm} autoFocus>
             {confirmText}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
   )
 
-  // Portal para evitar problemas de stacking/contexto
   return createPortal(modal, document.body)
 }
