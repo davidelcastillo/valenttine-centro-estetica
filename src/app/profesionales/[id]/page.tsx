@@ -58,6 +58,7 @@ export default function Page({ params }: { params: { id: string } }) {
         setError(e?.message ?? 'No se pudo cargar el profesional');
       } finally {
         setLoading(false);
+        
       }
     })();
   }, [params.id]);
