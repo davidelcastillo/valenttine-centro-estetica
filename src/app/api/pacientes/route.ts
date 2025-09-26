@@ -1,14 +1,24 @@
-// app/api/pacientes/route.ts
+// src/app/api/pacientes/route.ts
 import { NextResponse } from "next/server";
-
-// Simulación de pacientes (luego reemplazás con DB) DESACTIVAR CUANDO ESTÉ LA BDD
-const pacientes = [
-  { id: 1, nombre: "Juan Pérez", edad: 30 },
-  { id: 2, nombre: "Ana Gómez", edad: 25 },
-];
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  // const pacientes = await prisma.paciente.findMany();  ACTIVAR CUANDO YA ESTE LA BBD
+  try {
+    const pacientes = await prisma.paciente.findMany({
+      include: {
+        usuario: true,       // incluye los datos de usuario vinculado
+        provincia: true,     // incluye provincia
+        localidad: true,     // incluye localidad
+        obraSocial: true,    // incluye obra social
+      },
+    });
+
     return NextResponse.json(pacientes);
-  
+  } catch (error) {
+    console.error("Error al obtener pacientes:", error);
+    return NextResponse.json(
+      { error: "Error al obtener pacientes" },
+      { status: 500 }
+    );
+  }
 }
