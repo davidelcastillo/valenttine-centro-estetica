@@ -1,35 +1,13 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { GeistSans } from "geist/font/sans"
-import { GeistMono } from "geist/font/mono"
-import { Analytics } from "@vercel/analytics/next"
-import { Poppins } from "next/font/google"
-import { Suspense } from "react"
-import "./globals.css"
+import { type ReactNode } from 'react'
 
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-poppins",
-})
-
-export const metadata: Metadata = {
-  title: "v0 App",
-  description: "Created with v0",
-  generator: "v0.app",
-}
-
-export default function RootLayout({
+export default function PacientesLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+}: {
+  children: ReactNode
+}) {
   return (
-    <html lang="es" className={`${GeistSans.variable} ${GeistMono.variable} ${poppins.variable}`}>
-      <body className={`font-sans antialiased`}>
-        <Suspense fallback={null}>{children}</Suspense>
-        <Analytics />
-      </body>
-    </html>
-  )
+    <>
+      {children}
+    </>
+  );
 }
