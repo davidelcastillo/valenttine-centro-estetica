@@ -1,6 +1,100 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+
+
+//import { crearPaciente } from '@/lib/api/pacientes'
+
+/*
+
+import { PacienteDTO } from "@/lib/types/pacientes.dto"
+
+async function onSubmit(data: PacienteDTO) {
+  try {
+    const response = await crearPaciente(data)
+    console.log('Paciente registrado:', response)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+*/
+
+interface Patient {
+  id: string
+  fullName: string
+  lastName: string
+  dni: string
+  status: "Activo" | "Inactivo" | "Suspendido"
+}
+
+/*
+export default function ListaPacientes() {
+  const [patients, setPatients] = useState<Patient[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const res = await fetch("/api/pacientes")
+        if (!res.ok) throw new Error("Error al cargar pacientes")
+        const data = await res.json()
+        setPatients(data)
+      } catch (err: any) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPatients()
+  }, [])
+
+  if (loading) return <p>Cargando pacientes...</p>
+  if (error) return <p className="text-red-500">Error: {error}</p>
+
+  return (
+    <div>
+      <h2 className="text-2xl font-bold mb-4">Lista de Pacientes</h2>
+      {patients.length === 0 ? (
+        <p>No hay pacientes registrados</p>
+      ) : (
+        <ul className="space-y-2">
+          {patients.map((p) => (
+            <li key={p.id} className="p-4 border rounded-lg shadow-sm">
+              <p><strong>{p.fullName} {p.lastName}</strong></p>
+              <p>DNI: {p.dni}</p>
+              <p>Estado: {p.status}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+*/
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const formData = {
+    nombre: nombre,
+    apellido: apellido,
+    dni: dni,
+    // etc según tus campos
+  };
+
+  const res = await fetch("/api/pacientes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(formData),
+  });
+
+  const data = await res.json();
+  console.log("Respuesta backend:", data);
+};
 
 interface Patient {
   id: string
@@ -59,91 +153,73 @@ export default function PatientManagementModule() {
     plan: "",
   })
 
+
   const [formErrors, setFormErrors] = useState<Record<string, string>>({})
 
-  const patients: Patient[] = [
-    {
-      id: "1",
-      patientId: "PAC-001",
-      registrationDate: "2024-01-10 14:30:00",
-      fullName: "María Elena",
-      lastName: "González Rodríguez",
-      dni: "12345678",
-      birthDate: "15/03/1985",
-      gender: "Femenino",
-      maritalStatus: "Casado/a",
-      country: "Argentina",
-      province: "Buenos Aires",
-      locality: "La Plata",
-      neighborhood: "Centro",
-      street: "Calle 7",
-      streetNumber: "1234",
-      phone: "(221)4567890",
-      email: "maria.gonzalez@email.com",
-      healthInsurance: "Swiss Medical",
-      memberNumber: "123456789",
-      plan: "210",
-      status: "Activo",
-      registeredBy: "Ana García",
-      history: [{ date: "2024-01-10 14:30", action: "Paciente registrado", user: "Ana García" }],
-    },
-    {
-      id: "2",
-      patientId: "PAC-002",
-      registrationDate: "2024-01-12 09:15:00",
-      fullName: "Carlos Alberto",
-      lastName: "Martínez López",
-      dni: "87654321",
-      birthDate: "22/07/1978",
-      gender: "Masculino",
-      maritalStatus: "Soltero/a",
-      country: "Argentina",
-      province: "Córdoba",
-      locality: "Córdoba Capital",
-      neighborhood: "Nueva Córdoba",
-      street: "Av. Hipólito Yrigoyen",
-      streetNumber: "567",
-      phone: "(351)2345678",
-      email: "carlos.martinez@email.com",
-      healthInsurance: "Osde",
-      memberNumber: "987654321",
-      plan: "450",
-      status: "Activo",
-      registeredBy: "Carlos López",
-      history: [
-        { date: "2024-01-12 09:15", action: "Paciente registrado", user: "Carlos López" },
-        { date: "2024-01-15 16:45", action: "Datos actualizados", user: "María Rodríguez" },
-      ],
-    },
-    {
-      id: "3",
-      patientId: "PAC-003",
-      registrationDate: "2023-12-28 11:20:00",
-      fullName: "Ana Sofía",
-      lastName: "Fernández Castro",
-      dni: "11223344",
-      birthDate: "10/11/1992",
-      gender: "Femenino",
-      maritalStatus: "Divorciado/a",
-      country: "Argentina",
-      province: "Santa Fe",
-      locality: "Rosario",
-      neighborhood: "Centro",
-      street: "San Martín",
-      streetNumber: "890",
-      phone: "(341)6789012",
-      email: "ana.fernandez@email.com",
-      healthInsurance: "Federada",
-      memberNumber: "456789123",
-      plan: "300",
-      status: "Suspendido",
-      registeredBy: "María Rodríguez",
-      history: [
-        { date: "2023-12-28 11:20", action: "Paciente registrado", user: "María Rodríguez" },
-        { date: "2024-01-20 10:30", action: "Estado cambiado a Suspendido", user: "Ana García" },
-      ],
-    },
-  ]
+
+// ELIMINAMOS EL ARRAY FIJO Y AGREGAMOS ESTE USEEFFECT
+  const [patients, setPatients] = useState<Patient[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+
+useEffect(() => {
+  const fetchPatients = async () => {
+    try {
+      const res = await fetch("/api/pacientes")
+      if (!res.ok) throw new Error("Error al cargar pacientes")
+      const data = await res.json()
+
+      //adaptamos los datos de la BD al formato de la tabla 
+      const mapped = data.map((p: any) => {
+        // sacar la parte de fecha en UTC para no “correr” el día
+        const [yyyy, mm, dd] = new Date(p.fechaNacimiento).toISOString().slice(0, 10).split("-");
+
+        // Normalizar estado a “Activo/Inactivo/Suspendido”
+        const estadoBonito = p.estado
+          ? p.estado.charAt(0) + p.estado.slice(1).toLowerCase()
+          : "Activo";
+
+        return {
+          id: String(p.id),
+          // “PAC-001” es solo un código visual; si solo queremos mostrar “1”, cambiar a String(p.id)
+          patientId: `PAC-${String(p.id).padStart(3, "0")}`,
+          fullName: p.nombre,
+          lastName: p.apellido,
+          dni: p.dni,
+          // formato dd/mm/yyyy sin tocar zona horaria
+          birthDate: `${dd}/${mm}/${yyyy}`,
+          gender: p.genero,
+          maritalStatus: p.estadoCivil,     
+          country: p.pais,
+          province: p.provincia?.nombre ?? "",
+          locality: p.localidad?.nombre ?? "",
+          neighborhood: p.barrio ?? "",
+          street: p.calle,
+          streetNumber: p.numero,
+          phone: p.celular,
+          email: p.email,
+          healthInsurance: p.obraSocial?.nombre ?? "Sin obra social",
+          memberNumber: p.numeroSocio,
+          plan: p.plan,
+          status: estadoBonito,
+          registeredBy: p.creadoPor?.username ?? "Sistema",
+          history: [],
+        };
+      });
+
+
+      setPatients(mapped)
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  fetchPatients()
+}, [])
+
 
   const provinces = [
     "Buenos Aires",
@@ -251,7 +327,7 @@ export default function PatientManagementModule() {
 
     if (!newPatientForm.phone.trim()) {
       errors.phone = "El número de celular es obligatorio"
-    } else if (!/^$$\d{3}$$\d{7}$/.test(newPatientForm.phone)) {
+    } else if (!/^\(\d{3}\)\d{7}$/.test(newPatientForm.phone)) {
       errors.phone = "Número inválido, revise el formato"
     }
 
@@ -889,7 +965,10 @@ export default function PatientManagementModule() {
                   </td>
                   <td className="px-6 py-4 font-semibold text-gray-900">{patient.dni}</td>
                   <td className="px-6 py-4 text-gray-700">{patient.birthDate}</td>
-                  <td className="px-6 py-4 text-gray-700">{patient.healthInsurance}</td>
+                  <td className="px-6 py-4 text-gray-700">
+                    {patient.healthInsurance || "Sin obra social"}
+                  </td>
+
                   <td className="px-6 py-4">
                     <span
                       className={`px-3 py-1 rounded-full text-sm font-medium ${
