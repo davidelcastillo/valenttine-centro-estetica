@@ -215,150 +215,131 @@ export default function PatientManagementModule() {
 
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault()
 
-  // Validar el formulario sin importar si es creación o edición
-  const errors = validateForm();
-  if (Object.keys(errors).length > 0) {
-    setFormErrors(errors);
-    return;
-  }
+    // Validar el formulario sin importar si es creación o edición
+    const errors = validateForm()
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors)
+      return
+    }
+    
+    // Validar todos los campos requeridos
+    const requiredFields = {
+      'nombre': newPatientForm.fullName,
+      'apellido': newPatientForm.lastName,
+      'dni': newPatientForm.dni,
+      'fechaNacimiento': newPatientForm.birthDate,
+      'genero': newPatientForm.gender,
+      'estadoCivil': newPatientForm.maritalStatus,
+      'pais': newPatientForm.country,
+      'provincia': newPatientForm.province,
+      'localidad': newPatientForm.locality,
+      'calle': newPatientForm.street,
+      'numero': newPatientForm.streetNumber,
+      'celular': newPatientForm.phone,
+      'email': newPatientForm.email,
+      'obraSocial': newPatientForm.healthInsurance,
+      'numeroSocio': newPatientForm.memberNumber,
+      'plan': newPatientForm.plan
+    }
 
-  // Validar todos los campos requeridos
-  const requiredFields = {
-    nombre: newPatientForm.fullName,
-    apellido: newPatientForm.lastName,
-    dni: newPatientForm.dni,
-    fechaNacimiento: newPatientForm.birthDate,
-    genero: newPatientForm.gender,
-    estadoCivil: newPatientForm.maritalStatus,
-    pais: newPatientForm.country,
-    provincia: newPatientForm.province,
-    localidad: newPatientForm.locality,
-    calle: newPatientForm.street,
-    numero: newPatientForm.streetNumber,
-    celular: newPatientForm.phone,
-    email: newPatientForm.email,
-    obraSocial: newPatientForm.healthInsurance,
-    numeroSocio: newPatientForm.memberNumber,
-    plan: newPatientForm.plan,
-  };
+    const missingFields = Object.entries(requiredFields)
+      .filter(([_, value]) => !value)
+      .map(([key]) => key)
 
-  const missingFields = Object.entries(requiredFields)
-    .filter(([_, value]) => !value)
-    .map(([key]) => key);
-
-  if (missingFields.length > 0) {
-    const errors = missingFields.reduce(
-      (acc, field) => ({
+    if (missingFields.length > 0) {
+      const errors = missingFields.reduce((acc, field) => ({
         ...acc,
-        [field]: "Este campo es requerido",
-      }),
-      {}
-    );
-    setFormErrors(errors);
-    throw new Error(
-      `Los siguientes campos son requeridos: ${missingFields.join(", ")}`
-    );
-  }
+        [field]: 'Este campo es requerido'
+      }), {})
+      setFormErrors(errors)
+      throw new Error(`Los siguientes campos son requeridos: ${missingFields.join(', ')}`)
+    }
 
-  // 👇 conversión de fecha aquí
-  let fechaNacimiento: Date | null = null;
-  if (newPatientForm.birthDate) {
+    const formData = {
+      nombre: newPatientForm.fullName,
+      apellido: newPatientForm.lastName,
+      dni: newPatientForm.dni,
+      fechaNacimiento: newPatientForm.birthDate,
+      genero: newPatientForm.gender,
+      estadoCivil: newPatientForm.maritalStatus,
+      pais: newPatientForm.country,
+      provinciaId: Number(newPatientForm.province),
+      localidadId: Number(newPatientForm.locality),
+      barrio: newPatientForm.neighborhood || '',
+      calle: newPatientForm.street,
+      numero: newPatientForm.streetNumber,
+      celular: newPatientForm.phone,
+      email: newPatientForm.email,
+      obraSocialId: Number(newPatientForm.healthInsurance),
+      numeroSocio: newPatientForm.memberNumber,
+      plan: newPatientForm.plan,
+    }
+
     try {
-      // birthDate viene del <input type="date" /> en formato "YYYY-MM-DD"
-      const [year, month, day] = newPatientForm.birthDate.split("-");
-      fechaNacimiento = new Date(Number(year), Number(month) - 1, Number(day));
-    } catch (error) {
-      console.error("Error al parsear la fecha:", error);
-    }
-  }
+      // Debug de datos enviados
+      console.log('Enviando datos:', {
+        ...formData,
+        // Verificar tipos de datos críticos
+        _debug: {
+          provinciaId: typeof formData.provinciaId,
+          localidadId: typeof formData.localidadId,
+          obraSocialId: typeof formData.obraSocialId,
+          genero: formData.genero,
+          estadoCivil: formData.estadoCivil
+        }
+      })
 
-  const formData = {
-    nombre: newPatientForm.fullName,
-    apellido: newPatientForm.lastName,
-    dni: newPatientForm.dni,
-    fechaNacimiento, // 👈 ya es un Date válido
-    genero: newPatientForm.gender,
-    estadoCivil: newPatientForm.maritalStatus,
-    pais: newPatientForm.country,
-    provinciaId: Number(newPatientForm.province),
-    localidadId: Number(newPatientForm.locality),
-    barrio: newPatientForm.neighborhood || "",
-    calle: newPatientForm.street,
-    numero: newPatientForm.streetNumber,
-    celular: newPatientForm.phone,
-    email: newPatientForm.email,
-    obraSocialId: Number(newPatientForm.healthInsurance),
-    numeroSocio: newPatientForm.memberNumber,
-    plan: newPatientForm.plan,
-  };
+      const res = await fetch("/api/pacientes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
 
-  try {
-    // Debug de datos enviados
-    console.log("Enviando datos:", {
-      ...formData,
-      _debug: {
-        provinciaId: typeof formData.provinciaId,
-        localidadId: typeof formData.localidadId,
-        obraSocialId: typeof formData.obraSocialId,
-        genero: formData.genero,
-        estadoCivil: formData.estadoCivil,
-        fechaNacimiento: formData.fechaNacimiento?.toISOString(), // 👀 debug fecha
-      },
-    });
-
-    const res = await fetch("/api/pacientes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
-
-    const responseData = await res.json();
-    console.log("Respuesta del servidor:", {
-      status: res.status,
-      statusText: res.statusText,
-      data: responseData,
-    });
-
-    if (!res.ok) {
-      const errorMessage =
-        responseData.details || responseData.error || "Error desconocido";
-      console.error("Error al crear paciente:", {
+      const responseData = await res.json()
+      console.log('Respuesta del servidor:', {
         status: res.status,
-        message: errorMessage,
-        response: responseData,
-      });
-      throw new Error(errorMessage);
+        statusText: res.statusText,
+        data: responseData
+      })
+
+      if (!res.ok) {
+        const errorMessage = responseData.details || responseData.error || 'Error desconocido'
+        console.error('Error al crear paciente:', {
+          status: res.status,
+          message: errorMessage,
+          response: responseData
+        })
+        throw new Error(errorMessage)
+      }
+
+      console.log("Paciente creado exitosamente:", responseData)
+
+      // limpiar form
+      setNewPatientForm({
+        fullName: "",
+        lastName: "",
+        dni: "",
+        birthDate: "",
+        gender: "",
+        maritalStatus: "",
+        country: "",
+        province: "",
+        locality: "",
+        neighborhood: "",
+        street: "",
+        streetNumber: "",
+        phone: "",
+        email: "",
+        healthInsurance: "",
+        memberNumber: "",
+        plan: "",
+      })
+    } catch (err) {
+      console.error("Error:", err)
     }
-
-    console.log("Paciente creado exitosamente:", responseData);
-
-    // limpiar form
-    setNewPatientForm({
-      fullName: "",
-      lastName: "",
-      dni: "",
-      birthDate: "",
-      gender: "",
-      maritalStatus: "",
-      country: "",
-      province: "",
-      locality: "",
-      neighborhood: "",
-      street: "",
-      streetNumber: "",
-      phone: "",
-      email: "",
-      healthInsurance: "",
-      memberNumber: "",
-      plan: "",
-    });
-  } catch (err) {
-    console.error("Error:", err);
   }
-};
-
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -482,8 +463,8 @@ export default function PatientManagementModule() {
 
     if (!newPatientForm.birthDate.trim()) {
       errors.birthDate = "La fecha de nacimiento es obligatoria"
-    } else if (!/^\d{2}\/\d{2}\/\d{4}$/.test(newPatientForm.birthDate)) {
-      errors.birthDate = "Formato debe ser DD/MM/AAAA"
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(newPatientForm.birthDate)) {
+      errors.birthDate = "Formato debe ser YYYY-MM-DD"
     }
 
     if (!newPatientForm.gender) {
@@ -680,18 +661,18 @@ export default function PatientManagementModule() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Fecha de Nacimiento *</label>
-                <input
-                  type="date"
-                  value={newPatientForm.birthDate} // debe estar en YYYY-MM-DD
-                  onChange={(e) => {
-                    setNewPatientForm({ ...newPatientForm, birthDate: e.target.value });
-                    if (formErrors.birthDate) {
-                      const newErrors = { ...formErrors };
-                      delete newErrors.birthDate;
-                      setFormErrors(newErrors);
-                    }
-                  }}
-                />
+            <input
+              type="date"
+              value={newPatientForm.birthDate} // debe estar en YYYY-MM-DD
+              onChange={(e) => {
+                setNewPatientForm({ ...newPatientForm, birthDate: e.target.value });
+                if (formErrors.birthDate) {
+                  const newErrors = { ...formErrors };
+                  delete newErrors.birthDate;
+                  setFormErrors(newErrors);
+                }
+              }}
+            />
               {formErrors.birthDate && <p className="text-red-500 text-sm mt-1">{formErrors.birthDate}</p>}
             </div>
             <div>
