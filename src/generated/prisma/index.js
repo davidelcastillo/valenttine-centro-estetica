@@ -292,7 +292,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "D:\\ing-sw\\valenttine-estetica\\src\\generated\\prisma",
+      "value": "R:\\Ucasal\\Proyecto IngSW\\valenttine-centro-estetica\\src\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -306,7 +306,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "D:\\ing-sw\\valenttine-estetica\\prisma\\schema.prisma",
+    "sourceFilePath": "R:\\Ucasal\\Proyecto IngSW\\valenttine-centro-estetica\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -320,6 +320,7 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {

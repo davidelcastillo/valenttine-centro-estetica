@@ -1,100 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-
-
-//import { crearPaciente } from '@/lib/api/pacientes'
-
-/*
-
 import { PacienteDTO } from "@/lib/types/pacientes.dto"
-
-async function onSubmit(data: PacienteDTO) {
-  try {
-    const response = await crearPaciente(data)
-    console.log('Paciente registrado:', response)
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-*/
-
-interface Patient {
-  id: string
-  fullName: string
-  lastName: string
-  dni: string
-  status: "Activo" | "Inactivo" | "Suspendido"
-}
-
-/*
-export default function ListaPacientes() {
-  const [patients, setPatients] = useState<Patient[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        const res = await fetch("/api/pacientes")
-        if (!res.ok) throw new Error("Error al cargar pacientes")
-        const data = await res.json()
-        setPatients(data)
-      } catch (err: any) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchPatients()
-  }, [])
-
-  if (loading) return <p>Cargando pacientes...</p>
-  if (error) return <p className="text-red-500">Error: {error}</p>
-
-  return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">Lista de Pacientes</h2>
-      {patients.length === 0 ? (
-        <p>No hay pacientes registrados</p>
-      ) : (
-        <ul className="space-y-2">
-          {patients.map((p) => (
-            <li key={p.id} className="p-4 border rounded-lg shadow-sm">
-              <p><strong>{p.fullName} {p.lastName}</strong></p>
-              <p>DNI: {p.dni}</p>
-              <p>Estado: {p.status}</p>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  )
-}
-
-*/
-
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  const formData = {
-    nombre: nombre,
-    apellido: apellido,
-    dni: dni,
-    // etc según tus campos
-  };
-
-  const res = await fetch("/api/pacientes", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(formData),
-  });
-
-  const data = await res.json();
-  console.log("Respuesta backend:", data);
-};
 
 interface Patient {
   id: string
@@ -128,10 +35,47 @@ interface HistoryEvent {
   user: string
 }
 
+interface Provincia {
+  id: number
+  nombre: string
+}
+
+interface Localidad {
+  id: number
+  nombre: string
+  provinciaId: number
+}
+
+interface ObraSocial {
+  id: number
+  nombre: string
+}
+
+const GENEROS = [
+  { value: 'FEMENINO', label: 'Femenino' },
+  { value: 'MASCULINO', label: 'Masculino' },
+  { value: 'OTRO', label: 'Otro' }
+] as const
+
+const ESTADOS_CIVILES = [
+  { value: 'SOLTERO', label: 'Soltero/a' },
+  { value: 'CASADO', label: 'Casado/a' },
+  { value: 'DIVORCIADO', label: 'Divorciado/a' },
+  { value: 'VIUDO', label: 'Viudo/a' },
+  { value: 'UNION_LIBRE', label: 'Unión Libre / Convivencia' }
+] as const
+
 export default function PatientManagementModule() {
   const [currentView, setCurrentView] = useState<"list" | "create" | "detail">("list")
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
   const [showSidebar, setShowSidebar] = useState(false)
+
+  
+
+  // Estados para las opciones de los selects
+  const [provincias, setProvincias] = useState<Provincia[]>([])
+  const [localidades, setLocalidades] = useState<Localidad[]>([])
+  const [obrasSociales, setObrasSociales] = useState<ObraSocial[]>([])
 
   const [newPatientForm, setNewPatientForm] = useState({
     fullName: "",
@@ -141,21 +85,187 @@ export default function PatientManagementModule() {
     gender: "",
     maritalStatus: "",
     country: "",
-    province: "",
-    locality: "",
+    province: "", // Este será el ID de la provincia
+    locality: "", // Este será el ID de la localidad
     neighborhood: "",
     street: "",
     streetNumber: "",
     phone: "",
     email: "",
-    healthInsurance: "",
+    healthInsurance: "", // Este será el ID de la obra social
     memberNumber: "",
     plan: "",
   })
 
+  // Cargar provincias al montar el componente
+  useEffect(() => {
+    const fetchProvincias = async () => {
+      try {
+        const res = await fetch('/api/provincias')
+        if (!res.ok) throw new Error('Error al cargar provincias')
+        const data = await res.json()
+        setProvincias(data)
+      } catch (error) {
+        console.error('Error:', error)
+      }
+    }
+    fetchProvincias()
+  }, [])
+
+  // Cargar localidades cuando se selecciona una provincia
+  useEffect(() => {
+    const fetchLocalidades = async () => {
+      if (!newPatientForm.province) return
+      try {
+        const res = await fetch(`/api/localidades?provinciaId=${newPatientForm.province}`)
+        if (!res.ok) throw new Error('Error al cargar localidades')
+        const data = await res.json()
+        setLocalidades(data)
+      } catch (error) {
+        console.error('Error:', error)
+      }
+    }
+    fetchLocalidades()
+  }, [newPatientForm.province])
+
+  // Cargar obras sociales al montar el componente
+  useEffect(() => {
+    const fetchObrasSociales = async () => {
+      try {
+        const res = await fetch('/api/obras-sociales')
+        if (!res.ok) throw new Error('Error al cargar obras sociales')
+        const data = await res.json()
+        setObrasSociales(data)
+      } catch (error) {
+        console.error('Error:', error)
+      }
+    }
+    fetchObrasSociales()
+  }, [])
+
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({})
 
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    // Validar todos los campos requeridos
+    const requiredFields = {
+      'nombre': newPatientForm.fullName,
+      'apellido': newPatientForm.lastName,
+      'dni': newPatientForm.dni,
+      'fechaNacimiento': newPatientForm.birthDate,
+      'genero': newPatientForm.gender,
+      'estadoCivil': newPatientForm.maritalStatus,
+      'pais': newPatientForm.country,
+      'provincia': newPatientForm.province,
+      'localidad': newPatientForm.locality,
+      'calle': newPatientForm.street,
+      'numero': newPatientForm.streetNumber,
+      'celular': newPatientForm.phone,
+      'email': newPatientForm.email,
+      'obraSocial': newPatientForm.healthInsurance,
+      'numeroSocio': newPatientForm.memberNumber,
+      'plan': newPatientForm.plan
+    }
+
+    const missingFields = Object.entries(requiredFields)
+      .filter(([_, value]) => !value)
+      .map(([key]) => key)
+
+    if (missingFields.length > 0) {
+      const errors = missingFields.reduce((acc, field) => ({
+        ...acc,
+        [field]: 'Este campo es requerido'
+      }), {})
+      setFormErrors(errors)
+      throw new Error(`Los siguientes campos son requeridos: ${missingFields.join(', ')}`)
+    }
+
+    const formData = {
+      nombre: newPatientForm.fullName,
+      apellido: newPatientForm.lastName,
+      dni: newPatientForm.dni,
+      fechaNacimiento: newPatientForm.birthDate,
+      genero: newPatientForm.gender,
+      estadoCivil: newPatientForm.maritalStatus,
+      pais: newPatientForm.country,
+      provinciaId: Number(newPatientForm.province),
+      localidadId: Number(newPatientForm.locality),
+      barrio: newPatientForm.neighborhood || '',
+      calle: newPatientForm.street,
+      numero: newPatientForm.streetNumber,
+      celular: newPatientForm.phone,
+      email: newPatientForm.email,
+      obraSocialId: Number(newPatientForm.healthInsurance),
+      numeroSocio: newPatientForm.memberNumber,
+      plan: newPatientForm.plan,
+    }
+
+    try {
+      // Debug de datos enviados
+      console.log('Enviando datos:', {
+        ...formData,
+        // Verificar tipos de datos críticos
+        _debug: {
+          provinciaId: typeof formData.provinciaId,
+          localidadId: typeof formData.localidadId,
+          obraSocialId: typeof formData.obraSocialId,
+          genero: formData.genero,
+          estadoCivil: formData.estadoCivil
+        }
+      })
+
+      const res = await fetch("/api/pacientes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
+
+      const responseData = await res.json()
+      console.log('Respuesta del servidor:', {
+        status: res.status,
+        statusText: res.statusText,
+        data: responseData
+      })
+
+      if (!res.ok) {
+        const errorMessage = responseData.details || responseData.error || 'Error desconocido'
+        console.error('Error al crear paciente:', {
+          status: res.status,
+          message: errorMessage,
+          response: responseData
+        })
+        throw new Error(errorMessage)
+      }
+
+      console.log("Paciente creado exitosamente:", responseData)
+
+      // limpiar form
+      setNewPatientForm({
+        fullName: "",
+        lastName: "",
+        dni: "",
+        birthDate: "",
+        gender: "",
+        maritalStatus: "",
+        country: "",
+        province: "",
+        locality: "",
+        neighborhood: "",
+        street: "",
+        streetNumber: "",
+        phone: "",
+        email: "",
+        healthInsurance: "",
+        memberNumber: "",
+        plan: "",
+      })
+    } catch (err) {
+      console.error("Error:", err)
+    }
+  }
 
 // ELIMINAMOS EL ARRAY FIJO Y AGREGAMOS ESTE USEEFFECT
   const [patients, setPatients] = useState<Patient[]>([])
@@ -502,9 +612,11 @@ useEffect(() => {
                 }}
               >
                 <option value="">Seleccionar género</option>
-                <option value="Femenino">Femenino</option>
-                <option value="Masculino">Masculino</option>
-                <option value="Otro">Otro</option>
+                {GENEROS.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
               </select>
               {formErrors.gender && <p className="text-red-500 text-sm mt-1">{formErrors.gender}</p>}
             </div>
@@ -525,11 +637,11 @@ useEffect(() => {
                 }}
               >
                 <option value="">Seleccionar estado civil</option>
-                <option value="Soltero/a">Soltero/a</option>
-                <option value="Casado/a">Casado/a</option>
-                <option value="Divorciado/a">Divorciado/a</option>
-                <option value="Viudo/a">Viudo/a</option>
-                <option value="Unión Libre / Convivencia">Unión Libre / Convivencia</option>
+                {ESTADOS_CIVILES.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
               </select>
               {formErrors.maritalStatus && <p className="text-red-500 text-sm mt-1">{formErrors.maritalStatus}</p>}
             </div>
@@ -568,7 +680,11 @@ useEffect(() => {
                 }`}
                 value={newPatientForm.province}
                 onChange={(e) => {
-                  setNewPatientForm({ ...newPatientForm, province: e.target.value })
+                  setNewPatientForm({ 
+                    ...newPatientForm, 
+                    province: e.target.value,
+                    locality: '' // Resetear la localidad cuando cambia la provincia
+                  })
                   if (formErrors.province) {
                     const newErrors = { ...formErrors }
                     delete newErrors.province
@@ -577,9 +693,9 @@ useEffect(() => {
                 }}
               >
                 <option value="">Seleccionar provincia</option>
-                {provinces.map((province) => (
-                  <option key={province} value={province}>
-                    {province}
+                {provincias.map((provincia) => (
+                  <option key={provincia.id} value={provincia.id}>
+                    {provincia.nombre}
                   </option>
                 ))}
               </select>
@@ -587,8 +703,7 @@ useEffect(() => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Localidad *</label>
-              <input
-                type="text"
+              <select
                 className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                   formErrors.locality ? "border-red-500" : "border-gray-300"
                 }`}
@@ -601,8 +716,15 @@ useEffect(() => {
                     setFormErrors(newErrors)
                   }
                 }}
-                placeholder="Ingrese la localidad"
-              />
+                disabled={!newPatientForm.province} // Deshabilitar si no hay provincia seleccionada
+              >
+                <option value="">Seleccionar localidad</option>
+                {localidades.map((localidad) => (
+                  <option key={localidad.id} value={localidad.id}>
+                    {localidad.nombre}
+                  </option>
+                ))}
+              </select>
               {formErrors.locality && <p className="text-red-500 text-sm mt-1">{formErrors.locality}</p>}
             </div>
             <div>
@@ -734,9 +856,9 @@ useEffect(() => {
                 }}
               >
                 <option value="">Seleccionar obra social</option>
-                {healthInsurances.map((insurance) => (
-                  <option key={insurance} value={insurance}>
-                    {insurance}
+                {obrasSociales.map((obraSocial) => (
+                  <option key={obraSocial.id} value={obraSocial.id}>
+                    {obraSocial.nombre}
                   </option>
                 ))}
               </select>
@@ -794,12 +916,7 @@ useEffect(() => {
               Cancelar
             </button>
             <button
-              onClick={() => {
-                if (validateForm()) {
-                  // Aquí se guardaría el paciente
-                  setCurrentView("list")
-                }
-              }}
+              onClick={(e) => handleSubmit(e)}
               className={`px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all ${
                 isFormValid()
                   ? "bg-purple-600 hover:bg-purple-700 text-white"

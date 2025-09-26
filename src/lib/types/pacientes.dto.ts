@@ -1,20 +1,20 @@
 // src/lib/types/paciente.dto.ts
 export interface PacienteDTO {
-  nombreCompleto: string
-  apellidoCompleto: string
+  nombre: string
+  apellido: string
   dni: string
   fechaNacimiento: string
   genero: string
   estadoCivil: string
   pais: string
-  provincia: string
-  localidad: string
-  barrio: string
+  provinciaId: number
+  localidadId: number
+  barrio?: string
   calle: string
   numero: string
-  numeroCelular: string
-  correoElectronico: string
-  obraSocial: string
+  celular: string
+  email: string
+  obraSocialId: number
   numeroSocio: string
   plan: string
 }
