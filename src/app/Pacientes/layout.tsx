@@ -1,13 +1,10 @@
-import { type ReactNode } from 'react'
+import type { Metadata } from 'next';
+import AuthShell from '@/components/layout/AuthShell';
 
-export default function PacientesLayout({
-  children,
-}: {
-  children: ReactNode
-}) {
-  return (
-    <>
-      {children}
-    </>
-  );
+export const metadata: Metadata = {
+  title: 'Pacientes · ERP Valenttine',
+};
+
+export default function PacientesLayout({ children }: { children: React.ReactNode }) {
+  return <AuthShell>{children}</AuthShell>;
 }

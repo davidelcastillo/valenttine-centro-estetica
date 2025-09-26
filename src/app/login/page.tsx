@@ -1,7 +1,9 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import Button from '@/components/ui/Button'
+//import { Button } from '@/components/ui/button'
+//import { Input } from '@/components/ui/input'
+import { Input } from '@/components/ui/Input'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { type LoginResponse, LoginResponseSchema } from '@/lib/usuarios/types'
@@ -72,7 +74,7 @@ export default function LoginPage() {
       setBanner(`Bienvenido, ${data.role}`)
       setTimeout(() => {
         if (nextPath) return router.replace(nextPath)
-        if (data.role === 'RECEPCIONISTA') router.replace('/pacientes') // o /reception si preferís
+        if (data.role === 'RECEPCIONISTA') router.replace('/Pacientes') // o /reception si preferís
         else if (data.role === 'MEDICO')   router.replace('/specialist')
         else                                router.replace('/admin')
       }, 5000)
