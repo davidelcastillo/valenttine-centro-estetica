@@ -8,6 +8,15 @@ import { getProfesionalById, updateProfesional } from '@/lib/profesionales/api';
 import type { Provincia, Localidad, ObraSocial, Prestacion } from '@/lib/categorias/types';
 
 // ===== Helpers (mismos que en "Nuevo") =====
+// en EditProfesionalPage (arriba de los handlers)
+const sanitizeToHalfHour = (hhmm: string) => {
+    const m = /^([0-1]\d|2[0-3]):([0-5]\d)$/.exec(hhmm ?? "");
+    if (!m) return "";
+    const [, hh, mm] = m;
+    const mm30 = Number(mm) >= 30 ? "30" : "00";
+    return `${hh}:${mm30}`;
+};
+
 const onlyLetters = (s: string) => /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$/.test((s ?? '').trim());
 const toDate = (ddmmyyyy: string) => {
     const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec((ddmmyyyy ?? '').trim());
@@ -17,6 +26,7 @@ const toDate = (ddmmyyyy: string) => {
     if (d.getFullYear() !== Number(yyyy) || d.getMonth() + 1 !== Number(mm) || d.getDate() !== Number(dd)) return new Date('Invalid');
     return d;
 };
+
 const fromISOtoDMY = (iso?: string) => {
     if (!iso) return '';
     const d = new Date(iso);
@@ -581,7 +591,7 @@ export default function EditProfesionalPage() {
                         type="submit"
                         disabled={!canSubmit}
                         className={`px-5 py-2 rounded-xl shadow text-white ${!canSubmit ? 'bg-violet-300 cursor-not-allowed'
-                                : 'bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700'
+                            : 'bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700'
                             }`}
                     >
                         {saving ? 'Guardando…' : 'Guardar cambios'}
