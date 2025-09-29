@@ -1,9 +1,12 @@
+// src/app/turnos/calendario/[profesional]/page.tsx
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
+import Image from "next/image"
 import { getDisponibilidad, getProfesionalDetalle } from "@/lib/turnos/api"
 import type { DisponibilidadResponse, ProfesionalDetalle, TimeSlot } from "@/lib/turnos/types"
+import { AppointmentCalendar } from "@/components/turnos/calendar/AppointmentCalendar"
 import { PatientSearchModal } from "@/components/turnos/modals/PatientSearchModal"
 
 function todayYMD() {
@@ -14,7 +17,9 @@ function todayYMD() {
 export default function CalendarPage() {
   const router = useRouter()
   const params = useParams<{ profesional: string }>()
-  const profesionalId = Number(params.profesional)
+
+  // usa SIEMPRE esta misma variable
+  const professionalId = Number(params.profesional)
 
   const [profesional, setProfesional] = useState<ProfesionalDetalle | null>(null)
   const [fecha, setFecha] = useState<string>(todayYMD())
@@ -26,11 +31,12 @@ export default function CalendarPage() {
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null)
   const [showPatientModal, setShowPatientModal] = useState(false)
 
+  // Detalle
   useEffect(() => {
     ;(async () => {
       try {
         setLoading(true)
-        const det = await getProfesionalDetalle(profesionalId)
+        const det = await getProfesionalDetalle(professionalId)
         setProfesional(det)
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : "No se pudo cargar el profesional")
@@ -38,14 +44,15 @@ export default function CalendarPage() {
         setLoading(false)
       }
     })()
-  }, [profesionalId])
+  }, [professionalId])
 
+  // Disponibilidad del día
   useEffect(() => {
     ;(async () => {
-      if (!profesionalId || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return
+      if (!professionalId || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return
       try {
         setLoadingSlots(true)
-        const d = await getDisponibilidad(profesionalId, fecha)
+        const d = await getDisponibilidad(professionalId, fecha)
         setDisp(d)
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : "No se pudo cargar la disponibilidad")
@@ -53,8 +60,9 @@ export default function CalendarPage() {
         setLoadingSlots(false)
       }
     })()
-  }, [profesionalId, fecha])
+  }, [professionalId, fecha])
 
+  // ← ahora cada slot trae { date, time, status }
   const slots: TimeSlot[] = useMemo(() => {
     if (!disp) return []
     return disp.disponibles.map((h) => ({ date: fecha, time: h, status: "available" }))
@@ -79,34 +87,45 @@ export default function CalendarPage() {
 
   return (
     <div className="screen-transition min-h-screen p-6">
-      {/* … UI … */}
+      {/* breadcrumb y encabezado omitidos por brevedad */}
 
-      <div className="bg-white rounded-b-2xl p-6 shadow-lg">
-        {loadingSlots ? (
-          <div>Cargando disponibilidad…</div>
-        ) : slots.length === 0 ? (
-          <div>No hay turnos disponibles para la fecha seleccionada.</div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {slots.map((s) => (
-              <button
-                key={s.time}
-                onClick={() => handleSlotClick(s)}
-                className="px-3 py-2 rounded-lg bg-green-100 hover:bg-green-200 text-green-800 font-medium"
-              >
-                {s.time} hs
-              </button>
-            ))}
+      <div className="flex gap-6">
+        {/* izquierda */}
+        <div className="w-80 flex-shrink-0">
+          <div className="bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl p-6 text-white mb-4">
+            <h3 className="text-xl font-bold mb-2">Turno para</h3>
+            <p className="text-lg">{profesional.nombreCompleto}</p>
+            <p className="text-white/90">{profesional.especialidad}</p>
           </div>
-        )}
+          <div className="bg-white rounded-lg p-4 shadow-sm">
+            <Image src="/medico_estetico.jpg" alt="Profesional" width={640} height={480} className="w-full h-auto rounded" />
+          </div>
+        </div>
+
+        {/* derecha */}
+        <div className="flex-1">
+          <div className="bg-gray-600 rounded-t-2xl p-4 text-white flex items-center justify-between">
+            <h2 className="text-xl font-bold">Seleccione un Turno</h2>
+            <label className="flex items-center gap-2 text-sm">
+              <span className="opacity-90">Fecha</span>
+              <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} className="rounded-md px-2 py-1 text-gray-900" />
+            </label>
+          </div>
+
+          <div className="bg-white rounded-b-2xl p-6 shadow-lg">
+            {loadingSlots
+              ? <div>Cargando disponibilidad…</div>
+              : <AppointmentCalendar date={fecha} slots={slots} onSlotClick={handleSlotClick} />
+            }
+          </div>
+        </div>
       </div>
 
       {showPatientModal && selectedSlot && (
         <PatientSearchModal
           open={showPatientModal}
           onClose={() => setShowPatientModal(false)}
-          professionalId={profesionalId}                    // <- usa la variable correcta
-          professionalName={profesional.nombreCompleto}      // para mostrar en el modal
+          professionalId={professionalId}
           selectedSlot={selectedSlot}
           onConfirm={handleAppointmentConfirmed}
         />

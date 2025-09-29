@@ -1,6 +1,7 @@
+// src/components/turnos/dashboard/DashboardHeader.tsx
 "use client"
 
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 
 interface DashboardHeaderProps {
   onRegisterClick: () => void

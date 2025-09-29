@@ -1,48 +1,69 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { StatsCard } from "./StatsCard"
-import { appointments } from "@/data/appointments"
+import { getDashboard } from "@/lib/turnos/api"
+import type { DashboardResponse } from "@/lib/turnos/types"
 
 export function StatsGrid() {
-  const totalAppointments = appointments.length
-  const canceledAppointments = appointments.filter((a) => a.status === "Cancelado").length
-  const confirmedAppointments = appointments.filter((a) => a.status === "Confirmado").length
-  const todayAppointments = appointments.filter((a) => a.date === new Date().toISOString().split("T")[0]).length
+  const [data, setData] = useState<DashboardResponse | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    ;(async () => {
+      try {
+        setLoading(true)
+        const d = await getDashboard()
+        setData(d)
+      } catch (e: any) {
+        setError(e?.message || "No se pudieron cargar las métricas")
+      } finally {
+        setLoading(false)
+      }
+    })()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {[...Array(3)].map((_, i) => <div key={i} className="rounded-2xl border p-6 h-28 bg-gray-50 animate-pulse" />)}
+      </div>
+    )
+  }
+  if (error || !data) return <div className="text-sm text-red-600 mb-8">{error ?? "Sin datos"}</div>
+
+  const { pendientes, confirmadosHoy, completadosMes } = data.stats
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <StatsCard
-        title="Turnos de Hoy"
-        value={todayAppointments}
-        color="purple"
+        title="Turnos Pendientes"
+        value={pendientes}
+        color="orange"
         icon={
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3" />
           </svg>
         }
       />
-
       <StatsCard
-        title="Turnos Cancelados"
-        value={canceledAppointments}
-        color="red"
-        icon={
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        }
-      />
-
-      <StatsCard
-        title="Turnos Confirmados"
-        value={confirmedAppointments}
+        title="Confirmados Hoy"
+        value={confirmadosHoy}
         color="green"
         icon={
           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+          </svg>
+        }
+      />
+      <StatsCard
+        title="Completados (Mes)"
+        value={completadosMes}
+        color="purple"
+        icon={
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v18M3 12h18" />
           </svg>
         }
       />
