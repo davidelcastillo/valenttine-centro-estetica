@@ -1,26 +1,33 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-// import { Prisma } from "@prisma/client"  // <- no se usa; podés borrarlo
 
-// ── Helpers mínimos ────────────────────────────────────────────────────────────
-function toDateYMD(s?: string) {
-  // "2025-09-28" → Date, o null si no matchea
-  if (typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s)) {
-    return new Date(s);
-  }
-  return null;
-}
-function toDateDMY(s?: string) {
-  // "28/09/2025" → Date, o null si no matchea
-  if (typeof s === "string" && /^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
-    const [dd, mm, yyyy] = s.split("/");
-    return new Date(`${yyyy}-${mm}-${dd}`);
-  }
-  return null;
-}
+// Tipos (idénticos a tu schema)
+type Genero = "FEMENINO" | "MASCULINO" | "OTRO";
+type EstadoCivil = "SOLTERO" | "CASADO" | "DIVORCIADO" | "VIUDO" | "UNION_LIBRE";
 
-// ── GET /api/pacientes/:id  (detalle) ─────────────────────────────────────────
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+// Helpers
+const toInt = (v: unknown): number | undefined => {
+  if (typeof v === "number" && Number.isInteger(v)) return v;
+  if (typeof v === "string" && /^\d+$/.test(v)) return parseInt(v, 10);
+};
+const toDate = (v: unknown): Date | undefined => {
+  if (v instanceof Date && !isNaN(v.getTime())) return v;
+  if (typeof v === "string") {
+    // acepta "YYYY-MM-DD" o ISO completo
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return new Date(`${v}T00:00:00.000Z`);
+    const d = new Date(v);
+    if (!isNaN(d.getTime())) return d;
+  }
+};
+const isLetters = (s: string) => /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$/.test(s.trim());
+const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+
+// ───────────────────────── GET /api/pacientes/:id
+export async function GET(
+  _req: Request,
+  ctx: { params: Promise<{ id: string }> } // <- params como Promise (Next 15)
+) {
+  const { params } = await ctx;
   const id = Number(params.id);
   if (!Number.isInteger(id)) {
     return NextResponse.json({ error: "ID inválido" }, { status: 400 });
@@ -31,7 +38,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     include: {
       provincia: { select: { id: true, nombre: true } },
       localidad: { select: { id: true, nombre: true, provinciaId: true } },
-      obraSocial: { select: { id: true, nombre: true} },
+      obraSocial: { select: { id: true, nombre: true } },
       creadoPor: { select: { id: true, username: true } },
     },
   });
@@ -42,73 +49,99 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   return NextResponse.json(paciente);
 }
 
-// ── PATCH /api/pacientes/:id  (actualizar) ─────────────────────────────────────
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+// Estructura de actualización en español
+type PacienteUpdate = Partial<{
+  nombre: string;
+  apellido: string;
+  dni: string;
+  fechaNacimiento: Date;
+  genero: Genero;
+  estadoCivil: EstadoCivil;
+  pais: string;
+  provinciaId: number;
+  localidadId: number;
+  barrio: string | null;
+  calle: string;
+  numero: string;
+  celular: string;
+  email: string;
+  obraSocialId: number;
+  numeroSocio: string;
+  plan: string;
+}>;
+
+// ───────────────────────── PATCH /api/pacientes/:id (PUT es alias)
+export async function PUT(
+  req: Request,
+  ctx: { params: Promise<{ id: string }> } // <- params como Promise
+) {
   try {
+    const { params } = await ctx;
     const id = Number(params.id);
     if (!Number.isInteger(id)) {
       return NextResponse.json({ error: "ID inválido" }, { status: 400 });
     }
 
-    const cambios: any = await req.json();
+    const bodyUnknown = await req.json().catch(() => null);
+    if (!bodyUnknown || typeof bodyUnknown !== "object") {
+      return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
+    }
+    const b = bodyUnknown as Record<string, unknown>;
 
-    // validar existencia
+    // Verificar existencia
     const existe = await prisma.paciente.findUnique({ where: { id } });
     if (!existe) {
       return NextResponse.json({ error: "Paciente no encontrado" }, { status: 404 });
     }
 
-    // Normalizar fecha (acepta birthDate "DD/MM/YYYY" o fechaNacimiento "YYYY-MM-DD")
-    if (typeof cambios.birthDate === "string") {
-      const d = toDateDMY(cambios.birthDate);
-      if (d) cambios.fechaNacimiento = d;
-      delete cambios.birthDate;
+    // Validaciones básicas solo si llegan los campos
+    if (typeof b.dni === "string" && !/^\d{8}$/.test(b.dni)) {
+      return NextResponse.json({ error: "El DNI debe tener 8 dígitos" }, { status: 400 });
     }
-    if (typeof cambios.fechaNacimiento === "string") {
-      const d = toDateYMD(cambios.fechaNacimiento) || toDateDMY(cambios.fechaNacimiento);
-      if (d) cambios.fechaNacimiento = d;
+    if (typeof b.nombre === "string" && (!b.nombre.trim() || !isLetters(b.nombre))) {
+      return NextResponse.json({ error: "Nombre inválido" }, { status: 400 });
+    }
+    if (typeof b.apellido === "string" && (!b.apellido.trim() || !isLetters(b.apellido))) {
+      return NextResponse.json({ error: "Apellido inválido" }, { status: 400 });
+    }
+    if (typeof b.email === "string" && !isEmail(b.email)) {
+      return NextResponse.json({ error: "Email no válido" }, { status: 400 });
     }
 
-    // Validaciones básicas
-    const validarDNI = (dni: string) => {
-      if (!/^\d{8}$/.test(dni)) throw new Error("El DNI debe tener 8 dígitos");
+    // Armar data en español (coerción de tipos segura)
+    const data: PacienteUpdate = {
+      ...(typeof b.nombre === "string" && { nombre: b.nombre.trim() }),
+      ...(typeof b.apellido === "string" && { apellido: b.apellido.trim() }),
+      ...(typeof b.dni === "string" && { dni: b.dni.trim() }),
+      ...(toDate(b.fechaNacimiento) && { fechaNacimiento: toDate(b.fechaNacimiento)! }),
+      ...(typeof b.genero === "string" && { genero: b.genero as Genero }),
+      ...(typeof b.estadoCivil === "string" && { estadoCivil: b.estadoCivil as EstadoCivil }),
+      ...(typeof b.pais === "string" && { pais: b.pais.trim() }),
+      ...(b.barrio !== undefined && {
+        barrio: typeof b.barrio === "string" && b.barrio.trim() !== "" ? b.barrio.trim() : null,
+      }),
+      ...(typeof b.calle === "string" && { calle: b.calle.trim() }),
+      ...(typeof b.numero === "string" && { numero: b.numero.trim() }),
+      ...(typeof b.celular === "string" && { celular: b.celular.trim() }),
+      ...(typeof b.email === "string" && { email: b.email.trim() }),
+      ...(typeof b.numeroSocio === "string" && { numeroSocio: b.numeroSocio.trim() }),
+      ...(typeof b.plan === "string" && { plan: b.plan.trim() }),
     };
-    const validarNombre = (s: string, label: string) => {
-      if (!s || /\d/.test(s)) throw new Error(`${label} no puede estar vacío ni contener números`);
-    };
-    const validarEmail = (email: string) => {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Email no válido");
-    };
+    const prov = toInt(b.provinciaId);
+    if (prov !== undefined) data.provinciaId = prov;
+    const loc = toInt(b.localidadId);
+    if (loc !== undefined) data.localidadId = loc;
+    const obra = toInt(b.obraSocialId);
+    if (obra !== undefined) data.obraSocialId = obra;
 
-    if (cambios.fullName) validarNombre(cambios.fullName, "Nombre");
-    if (cambios.lastName) validarNombre(cambios.lastName, "Apellido");
-    if (cambios.dni) validarDNI(cambios.dni);
-    if (cambios.email) validarEmail(cambios.email);
-
-    // Mapear del front → DB (solo campos definidos)
-    const datosActualizados = {
-      ...(cambios.fullName !== undefined && { nombre: cambios.fullName }),
-      ...(cambios.lastName !== undefined && { apellido: cambios.lastName }),
-      ...(cambios.dni !== undefined && { dni: cambios.dni }),
-      ...(cambios.fechaNacimiento !== undefined && { fechaNacimiento: cambios.fechaNacimiento }),
-      ...(cambios.gender !== undefined && { genero: cambios.gender }),
-      ...(cambios.maritalStatus !== undefined && { estadoCivil: cambios.maritalStatus }),
-      ...(cambios.country !== undefined && { pais: cambios.country }),
-      ...(cambios.neighborhood !== undefined && { barrio: cambios.neighborhood }),
-      ...(cambios.street !== undefined && { calle: cambios.street }),
-      ...(cambios.streetNumber !== undefined && { numero: cambios.streetNumber }),
-      ...(cambios.phone !== undefined && { celular: cambios.phone }),
-      ...(cambios.email !== undefined && { email: cambios.email }),
-      ...(cambios.memberNumber !== undefined && { numeroSocio: cambios.memberNumber }),
-      ...(cambios.plan !== undefined && { plan: cambios.plan }),
-      ...(cambios.province && { provinciaId: parseInt(cambios.province) }),
-      ...(cambios.locality && { localidadId: parseInt(cambios.locality) }),
-      ...(cambios.healthInsurance && { obraSocialId: parseInt(cambios.healthInsurance) }),
-    };
+    // Nada para actualizar
+    if (Object.keys(data).length === 0) {
+      return NextResponse.json({ error: "Sin cambios" }, { status: 400 });
+    }
 
     const actualizado = await prisma.paciente.update({
       where: { id },
-      data: datosActualizados,
+      data,
       include: {
         provincia: true,
         localidad: true,
@@ -118,12 +151,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     });
 
     return NextResponse.json(actualizado);
-  } catch (error: any) {
-    console.error("Error al actualizar paciente:", error);
-    const msg = error?.message ?? "Error al actualizar el paciente";
-    return NextResponse.json({ error: msg }, { status: 400 });
+  } catch (err) {
+    console.error("Error al actualizar paciente:", err);
+    return NextResponse.json({ error: "Error al actualizar el paciente" }, { status: 500 });
   }
 }
 
-// Compatibilidad si tu front envía PUT
-export const PUT = PATCH;
+

@@ -5,16 +5,17 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getNuevoProfesionalInit, getLocalidades } from '@/lib/categorias/api';
 import type { Provincia, Localidad, ObraSocial, Prestacion } from '@/lib/categorias/types';
+import Link from "next/link";
+import {
+    Select,
+    SelectTrigger,
+    SelectValue,
+    SelectContent,
+    SelectItem,
+} from "@/components/ui/select";
+
 
 // ==== Helpers (iguales a editar) ====
-
-const sanitizeToHalfHour = (hhmm: string) => {
-    const m = /^([0-1]\d|2[0-3]):([0-5]\d)$/.exec(hhmm ?? "");
-    if (!m) return "";
-    const [, hh, mm] = m;
-    const mm30 = Number(mm) >= 30 ? "30" : "00";
-    return `${hh}:${mm30}`;
-};
 
 const onlyLetters = (s: string) => /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$/.test((s ?? '').trim());
 const toDate = (ddmmyyyy: string) => {
@@ -38,6 +39,55 @@ const validatePhoneAR = (raw: string) => {
     const ok = area.length >= 2 && area.length <= 4 && local.length === 6;
     return ok ? { ok: true as const, area, local, full: `(${area})${local}` } : { ok: false as const };
 };
+const HOURS = Array.from({ length: 24 }, (_, h) => String(h).padStart(2, "0"));
+const MINUTES = ["00", "30"];
+
+type TimeFieldProps = {
+    value: string;
+    onChange: (v: string) => void;
+    disabled?: boolean;
+    "aria-label"?: string;
+};
+
+function TimeField({ value, onChange, disabled, ...a11y }: TimeFieldProps) {
+    const [hh = "", mm = ""] = (value ?? "").split(":");
+    const set = (h: string, m: string) => onChange(`${h || "00"}:${m || "00"}`);
+
+    return (
+        <div className="flex items-center gap-2">
+            {/* Horas */}
+            <Select value={hh || ""} disabled={disabled} onValueChange={(h) => set(h, mm || "00")}>
+                <SelectTrigger className="w-[90px] h-10 rounded-xl" {...a11y}>
+                    <SelectValue placeholder="--" />
+                </SelectTrigger>
+                <SelectContent className="max-h-64">
+                    {HOURS.map((h) => (
+                        <SelectItem key={h} value={h}>
+                            {h}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+
+            <span className="text-gray-500">:</span>
+
+            {/* Minutos */}
+            <Select value={mm || ""} disabled={disabled} onValueChange={(m) => set(hh || "00", m)}>
+                <SelectTrigger className="w-[80px] h-10 rounded-xl">
+                    <SelectValue placeholder="--" />
+                </SelectTrigger>
+                <SelectContent>
+                    {MINUTES.map((m) => (
+                        <SelectItem key={m} value={m}>
+                            {m}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+    );
+}
+
 
 // ==== Estado de formulario ====
 type FormState = {
@@ -75,7 +125,6 @@ type FormState = {
     horario: Array<{ day: string; enabled: boolean; start: string; end: string }>;
 
     // Usuario médico opcional
-    crearUsuario: boolean;
     username: string;
     userEmail: string;
     password: string;
@@ -151,10 +200,10 @@ export default function NuevoProfesionalPage() {
 
                     horario,
 
-                    crearUsuario: false,
-                    username: '',
-                    userEmail: '',
-                    password: '',
+                    username: "",
+                    userEmail: "",
+                    password: "",
+
                 };
 
                 setForm({ ...base }); // mutable
@@ -190,11 +239,11 @@ export default function NuevoProfesionalPage() {
         if (!f) return f; const h = [...f.horario]; h[i] = { ...h[i], [field]: val }; return { ...f, horario: h };
     });
 
+    const celular = form?.celular ?? '';
     const telPreview = useMemo(() => {
-        if (!form) return '';
-        const v = validatePhoneAR(form.celular);
+        const v = validatePhoneAR(celular);
         return v.ok ? v.full : '';
-    }, [form?.celular]);
+    }, [celular]);
 
     // Validaciones
     const validateAll = (): Errors => {
@@ -264,14 +313,16 @@ export default function NuevoProfesionalPage() {
             e._horario = 'Revisa los rangos (HH:mm – HH:mm)';
 
         // Usuario médico (opcional)
-        if (form.crearUsuario) {
-            if (!form.username.trim()) e.username = 'Usuario obligatorio';
-            else if (!/^\S{1,11}$/.test(form.username.trim())) e.username = 'Hasta 11, sin espacios';
-            if (!form.userEmail.trim()) e.userEmail = 'Email obligatorio';
-            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.userEmail.trim())) e.userEmail = 'Correo electrónico no válido';
-            if (!form.password.trim()) e.password = 'Contraseña obligatoria';
-            else if (form.password.length < 6) e.password = 'Mínimo 6 caracteres';
-        }
+        // Usuario médico (obligatorio)
+        if (!form.username.trim()) e.username = 'Usuario obligatorio';
+        else if (!/^\S{1,11}$/.test(form.username.trim())) e.username = 'Hasta 11, sin espacios';
+
+        if (!form.userEmail.trim()) e.userEmail = 'Email obligatorio';
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.userEmail.trim())) e.userEmail = 'Correo electrónico no válido';
+
+        if (!form.password.trim()) e.password = 'Contraseña obligatoria';
+        else if (form.password.length < 6) e.password = 'Mínimo 6 caracteres';
+
 
         return e;
     };
@@ -300,9 +351,11 @@ export default function NuevoProfesionalPage() {
 
         const payload: any = {
             // usuario (opcional)
-            ...(form.crearUsuario
-                ? { usuarioNuevo: { username: form.username.trim(), email: form.userEmail.trim(), contraseña: form.password } }
-                : {}),
+            usuarioNuevo: {
+                username: form.username.trim(),
+                email: form.userEmail.trim(),
+                contraseña: form.password, // ojo con el backend (nombre de clave)
+            },
             // datos obligatorios
             nombre: form.nombre.trim(),
             apellido: form.apellido.trim(),
@@ -364,12 +417,12 @@ export default function NuevoProfesionalPage() {
                     <h1 className="text-2xl font-semibold text-violet-800">Registrar nuevo profesional</h1>
                     <p className="text-sm text-gray-500">Completá los datos y guardá el registro.</p>
                 </div>
-                <a
+                <Link
                     href="/profesionales"
                     className="px-4 py-2 rounded-xl bg-gradient-to-r from-gray-200 to-gray-300 text-gray-800 hover:from-gray-300 hover:to-gray-400 shadow"
                 >
                     Volver
-                </a>
+                </Link>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -492,7 +545,20 @@ export default function NuevoProfesionalPage() {
                         {/* Email */}
                         <div>
                             <label className="block text-sm text-gray-600 mb-1">Correo Electrónico *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" type="email" value={form.email} onChange={e => set('email', e.target.value)} />
+                            <input
+                                type="email"
+                                className="w-full border rounded-xl px-3 py-2"
+                                value={form.email}
+                                onChange={(e) => {
+                                    const v = e.target.value;
+                                    set('email', v);          // contacto
+                                    set('userEmail', v);      // usuario médico
+                                    const uname = v.split('@')[0]
+                                        .replace(/[^A-Za-z0-9_]/g, '')
+                                        .slice(0, 11);
+                                    set('username', uname);   // usuario autogenerado (máx 11, sin espacios)
+                                }}
+                            />
                             {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
                         </div>
                     </div>
@@ -570,9 +636,20 @@ export default function NuevoProfesionalPage() {
                                         <span className="font-medium">{h.day}</span>
                                     </label>
                                     <div className="flex items-center gap-2">
-                                        <input type="time" className="border rounded-lg px-2 py-1" value={h.start} onChange={e => setHora(i, 'start', e.target.value)} disabled={!h.enabled} />
+                                        <TimeField
+                                            aria-label="Hora inicio"
+                                            value={h.start}
+                                            onChange={(v) => setHora(i, "start", v)}
+                                            disabled={!h.enabled}
+                                        />
                                         <span>—</span>
-                                        <input type="time" className="border rounded-lg px-2 py-1" value={h.end} onChange={e => setHora(i, 'end', e.target.value)} disabled={!h.enabled} />
+                                        <TimeField
+                                            aria-label="Hora fin"
+                                            value={h.end}
+                                            onChange={(v) => setHora(i, "end", v)}
+                                            disabled={!h.enabled}
+                                        />
+
                                     </div>
                                 </div>
                             ))}
@@ -583,31 +660,47 @@ export default function NuevoProfesionalPage() {
 
                 {/* USUARIO MÉDICO (opcional) */}
                 <section className="bg-white/70 backdrop-blur rounded-2xl shadow p-5">
-                    <div className="flex items-center gap-3">
-                        <input id="chkuser" type="checkbox" checked={form.crearUsuario} onChange={e => set('crearUsuario', e.target.checked)} />
-                        <label htmlFor="chkuser" className="text-violet-700 font-semibold">Crear usuario médico (opcional)</label>
-                    </div>
-
-                    {form.crearUsuario && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-                            <div>
-                                <label className="block text-sm text-gray-600 mb-1">Usuario *</label>
-                                <input className="w-full border rounded-xl px-3 py-2" value={form.username} onChange={e => set('username', e.target.value)} placeholder="sin espacios, máx. 11" />
-                                {errors.username && <p className="text-xs text-red-600 mt-1">{errors.username}</p>}
-                            </div>
-                            <div>
-                                <label className="block text-sm text-gray-600 mb-1">Email *</label>
-                                <input className="w-full border rounded-xl px-3 py-2" value={form.userEmail} onChange={e => set('userEmail', e.target.value)} />
-                                {errors.userEmail && <p className="text-xs text-red-600 mt-1">{errors.userEmail}</p>}
-                            </div>
-                            <div>
-                                <label className="block text-sm text-gray-600 mb-1">Contraseña *</label>
-                                <input className="w-full border rounded-xl px-3 py-2" type="password" value={form.password} onChange={e => set('password', e.target.value)} placeholder="mínimo 6 caracteres" />
-                                {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password}</p>}
-                            </div>
+                    <h3 className="text-violet-700 font-semibold mb-3">Usuario médico</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label className="block text-sm text-gray-600 mb-1">Usuario *</label>
+                            <input
+                                className="w-full border rounded-xl px-3 py-2 bg-gray-50"
+                                value={form.username}
+                                readOnly
+                                title="Se genera automáticamente desde el email"
+                            />
+                            {errors.username && <p className="text-xs text-red-600 mt-1">{errors.username}</p>}
                         </div>
-                    )}
+                        <div>
+                            <label className="block text-sm text-gray-600 mb-1">Email *</label>
+                            <input
+                                className="w-full border rounded-xl px-3 py-2"
+                                value={form.userEmail}
+                                onChange={(e) => {
+                                    const v = e.target.value;
+                                    set('userEmail', v);
+                                    set('email', v); // si querés que siempre estén en sync
+                                    const uname = v.split('@')[0].replace(/[^A-Za-z0-9_]/g, '').slice(0, 11);
+                                    set('username', uname);
+                                }}
+                            />
+                            {errors.userEmail && <p className="text-xs text-red-600 mt-1">{errors.userEmail}</p>}
+                        </div>
+                        <div>
+                            <label className="block text-sm text-gray-600 mb-1">Contraseña *</label>
+                            <input
+                                className="w-full border rounded-xl px-3 py-2"
+                                type="password"
+                                value={form.password}
+                                onChange={(e) => set('password', e.target.value)}
+                                placeholder="mínimo 6 caracteres"
+                            />
+                            {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password}</p>}
+                        </div>
+                    </div>
                 </section>
+
 
                 {/* RESUMEN DE ERRORES (opcional) */}
                 {form && Object.keys(errors).length > 0 && (
@@ -623,9 +716,9 @@ export default function NuevoProfesionalPage() {
 
                 {/* FOOTER */}
                 <div className="flex items-center justify-end gap-3">
-                    <a href="/profesionales" className="px-4 py-2 rounded-xl bg-gradient-to-r from-gray-200 to-gray-300 text-gray-800 hover:from-gray-300 hover:to-gray-400 shadow">
+                    <Link href="/profesionales" className="px-4 py-2 rounded-xl bg-gradient-to-r from-gray-200 to-gray-300 text-gray-800 hover:from-gray-300 hover:to-gray-400 shadow">
                         Cancelar
-                    </a>
+                    </Link>
                     <button
                         type="submit"
                         disabled={!canSubmit}

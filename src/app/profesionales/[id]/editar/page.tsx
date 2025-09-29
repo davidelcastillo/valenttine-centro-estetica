@@ -6,17 +6,18 @@ import { useRouter, useParams } from 'next/navigation';
 import { getNuevoProfesionalInit, getLocalidades } from '@/lib/categorias/api';
 import { getProfesionalById, updateProfesional } from '@/lib/profesionales/api';
 import type { Provincia, Localidad, ObraSocial, Prestacion } from '@/lib/categorias/types';
+import Link from "next/link";
+import {
+    Select,
+    SelectTrigger,
+    SelectValue,
+    SelectContent,
+    SelectItem,
+} from "@/components/ui/select";
+
 
 // ===== Helpers (mismos que en "Nuevo") =====
 // en EditProfesionalPage (arriba de los handlers)
-const sanitizeToHalfHour = (hhmm: string) => {
-    const m = /^([0-1]\d|2[0-3]):([0-5]\d)$/.exec(hhmm ?? "");
-    if (!m) return "";
-    const [, hh, mm] = m;
-    const mm30 = Number(mm) >= 30 ? "30" : "00";
-    return `${hh}:${mm30}`;
-};
-
 const onlyLetters = (s: string) => /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$/.test((s ?? '').trim());
 const toDate = (ddmmyyyy: string) => {
     const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec((ddmmyyyy ?? '').trim());
@@ -49,6 +50,55 @@ const validatePhoneAR = (raw: string) => {
     const ok = area.length >= 2 && area.length <= 4 && local.length === 6;
     return ok ? { ok: true as const, area, local, full: `(${area})${local}` } : { ok: false as const };
 };
+// ── TimeField con shadcn Select ───────────────────────────────────────────────
+const HOURS = Array.from({ length: 24 }, (_, h) => String(h).padStart(2, "0"));
+const MINUTES = ["00", "30"];
+
+type TimeFieldProps = {
+    value: string;
+    onChange: (v: string) => void;
+    disabled?: boolean;
+    "aria-label"?: string;
+};
+
+function TimeField({ value, onChange, disabled, ...a11y }: TimeFieldProps) {
+    const [hh = "", mm = ""] = (value ?? "").split(":");
+    const set = (h: string, m: string) => onChange(`${h || "00"}:${m || "00"}`);
+
+    return (
+        <div className="flex items-center gap-2">
+            {/* Horas */}
+            <Select value={hh || ""} disabled={disabled} onValueChange={(h) => set(h, mm || "00")}>
+                <SelectTrigger className="w-[90px] h-10 rounded-xl" {...a11y}>
+                    <SelectValue placeholder="--" />
+                </SelectTrigger>
+                <SelectContent className="max-h-64">
+                    {HOURS.map((h) => (
+                        <SelectItem key={h} value={h}>
+                            {h}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+
+            <span className="text-gray-500">:</span>
+
+            {/* Minutos */}
+            <Select value={mm || ""} disabled={disabled} onValueChange={(m) => set(hh || "00", m)}>
+                <SelectTrigger className="w-[80px] h-10 rounded-xl">
+                    <SelectValue placeholder="--" />
+                </SelectTrigger>
+                <SelectContent>
+                    {MINUTES.map((m) => (
+                        <SelectItem key={m} value={m}>
+                            {m}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+    );
+}
 
 // ===== Estado de formulario =====
 type FormState = {
@@ -362,12 +412,12 @@ export default function EditProfesionalPage() {
                     <h1 className="text-2xl font-semibold text-violet-800">Editar profesional</h1>
                     <p className="text-sm text-gray-500">Actualiza los datos y guarda los cambios.</p>
                 </div>
-                <a
+                <Link
                     href="/profesionales"
                     className="px-4 py-2 rounded-xl bg-gradient-to-r from-gray-200 to-gray-300 text-gray-800 hover:from-gray-300 hover:to-gray-400 shadow"
                 >
                     Volver
-                </a>
+                </Link>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -559,9 +609,19 @@ export default function EditProfesionalPage() {
                                         <span className="font-medium">{h.day}</span>
                                     </label>
                                     <div className="flex items-center gap-2">
-                                        <input type="time" className="border rounded-lg px-2 py-1" value={h.start} onChange={e => setHora(i, 'start', e.target.value)} disabled={!h.enabled} />
+                                        <TimeField
+                                            aria-label="Hora inicio"
+                                            value={h.start}
+                                            onChange={(v) => setHora(i, "start", v)}
+                                            disabled={!h.enabled}
+                                        />
                                         <span>—</span>
-                                        <input type="time" className="border rounded-lg px-2 py-1" value={h.end} onChange={e => setHora(i, 'end', e.target.value)} disabled={!h.enabled} />
+                                        <TimeField
+                                            aria-label="Hora fin"
+                                            value={h.end}
+                                            onChange={(v) => setHora(i, "end", v)}
+                                            disabled={!h.enabled}
+                                        />
                                     </div>
                                 </div>
                             ))}
@@ -584,9 +644,9 @@ export default function EditProfesionalPage() {
 
                 {/* FOOTER */}
                 <div className="flex items-center justify-end gap-3">
-                    <a href="/profesionales" className="px-4 py-2 rounded-xl bg-gradient-to-r from-gray-200 to-gray-300 text-gray-800 hover:from-gray-300 hover:to-gray-400 shadow">
+                    <Link href="/profesionales" className="px-4 py-2 rounded-xl bg-gradient-to-r from-gray-200 to-gray-300 text-gray-800 hover:from-gray-300 hover:to-gray-400 shadow">
                         Cancelar
-                    </a>
+                    </Link>
                     <button
                         type="submit"
                         disabled={!canSubmit}

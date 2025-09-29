@@ -3,13 +3,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 
-// Reusa los mismos catálogos del módulo de creación
-// Endpoints usados:
-//  - GET  /api/categorias/provincias
-//  - GET  /api/categorias/localidades?provinciaId=:id
-//  - GET  /api/categorias/obras-sociales
-//  - GET  /api/pacientes/:id  (o /api/pacientes/:id/detalle)
-//  - PUT  /api/pacientes/:id   (ajusta a PATCH si tu backend lo espera)
 
 // ===== Tipos mínimos (ajusta a tus DTO reales si los tenés exportados) =====
 interface Provincia { id: number; nombre: string }
@@ -213,31 +206,34 @@ export default function EditPacientePage() {
         if (Object.keys(v).length) return
 
         // payload homologado al backend (igual que crear)
-        const payload = {
+        const payload: any = {
             nombre: form.fullName.trim(),
             apellido: form.lastName.trim(),
-            dni: form.dni.trim(),
-            fechaNacimiento: form.birthDate, // YYYY-MM-DD → en el backend parsea a Date
+
+            fechaNacimiento: form.birthDate, // "YYYY-MM-DD" (tu API ya lo normaliza)
             genero: form.gender,
             estadoCivil: form.maritalStatus,
             pais: form.country.trim(),
-            provinciaId: Number(form.province),
-            localidadId: Number(form.locality),
             barrio: form.neighborhood.trim(),
             calle: form.street.trim(),
             numero: form.streetNumber.trim(),
             celular: form.phone.trim(),
             email: form.email.trim(),
-            obraSocialId: Number(form.healthInsurance),
             numeroSocio: form.memberNumber.trim(),
             plan: form.plan.trim(),
-        } as const
+        };
+
+        // Solo agrega si están seteados
+        if (form.province) payload.provinciaId = Number(form.province);
+        if (form.locality) payload.localidadId = Number(form.locality);
+        if (form.healthInsurance) payload.obraSocialId = Number(form.healthInsurance);
+
 
         try {
             setSaving(true)
             setServerMsg(null)
             const res = await fetch(`/api/pacientes/${id}`, {
-                method: 'PUT', // cambia a 'PATCH' si tu API lo requiere
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             })
@@ -414,8 +410,14 @@ export default function EditPacientePage() {
                     </div>
 
                     {serverMsg && (
-                        <p className="text-sm mt-3 {serverMsg ? 'text-red-600' : 'text-gray-500'}">{serverMsg}</p>
+                        <p
+                            className={`text-sm mt-3 ${serverMsg.toLowerCase().includes('error') ? 'text-red-600' : 'text-gray-600'
+                                }`}
+                        >
+                            {serverMsg}
+                        </p>
                     )}
+
                 </section>
             </form>
         </div>
