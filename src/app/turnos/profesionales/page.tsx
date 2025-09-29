@@ -1,9 +1,32 @@
 "use client"
+
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { professionals } from "@/data/professionals"
+import { getProfesionales } from "@/lib/turnos/api"
+import type { ProfesionalListItem } from "@/lib/turnos/types"
 
 export default function ProfessionalsPage() {
   const router = useRouter()
+  const [items, setItems] = useState<ProfesionalListItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true)
+        const data = await getProfesionales()
+        setItems(data)
+      } catch (e: any) {
+        setError(e?.message || "No se pudieron cargar los profesionales")
+      } finally {
+        setLoading(false)
+      }
+    })()
+  }, [])
+
+  if (loading) return <div className="p-6">Cargando profesionales…</div>
+  if (error) return <div className="p-6 text-red-600">{error}</div>
 
   return (
     <div className="screen-transition">
@@ -28,47 +51,40 @@ export default function ProfessionalsPage() {
         </div>
       </div>
 
-      {/* Professionals List */}
+      {/* Listado */}
       <div className="space-y-6">
-        {professionals.map((professional) => (
+        {items.map((p) => (
           <div
-            key={professional.id}
+            key={p.id}
             className="glass-effect rounded-2xl p-8 bg-white/95 backdrop-blur-sm border border-white/20"
           >
             <div className="bg-gradient-to-r from-gray-600 to-gray-500 text-white p-4 rounded-t-xl -m-8 mb-6">
-              <h3 className="text-xl font-bold">
-                {professional.fullName} {professional.lastName}
-              </h3>
+              <h3 className="text-xl font-bold">{p.nombreCompleto}</h3>
             </div>
 
             <div className="flex items-start space-x-6">
               <div className="w-48 h-48 rounded-xl overflow-hidden flex-shrink-0">
                 <img
-                  src={professional.photo || "/medico_estetico.jpg"}
-                  alt={`${professional.fullName} ${professional.lastName}`}
+                  src={"/medico_estetico.jpg"}
+                  alt={p.nombreCompleto}
                   className="w-full h-full object-cover"
                 />
               </div>
 
               <div className="flex-1">
-                <p className="text-lg text-gray-700 mb-4">{professional.specialty}</p>
+                <p className="text-lg text-gray-700 mb-4">{p.especialidad}</p>
 
                 <div className="mb-6">
                   <div className="flex items-center space-x-2 text-gray-600 mb-2">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <span className="font-medium">Horarios de atención</span>
                   </div>
                 </div>
 
                 <button
-                  onClick={() => router.push(`/turnos/calendario/${professional.id}`)}
+                  onClick={() => router.push(`/turnos/calendario/${p.id}`)}
                   className="bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-yellow-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
                 >
                   ELEGIR PROFESIONAL
