@@ -1,31 +1,32 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { PacienteDTO } from "@/lib/types/pacientes.dto"
+import Link from "next/link";
+
 
 interface Patient {
   id: string
-  patientId: string
-  registrationDate: string
   fullName: string
   lastName: string
   dni: string
   birthDate: string
-  gender: "Femenino" | "Masculino" | "Otro"
-  maritalStatus: "Soltero/a" | "Casado/a" | "Divorciado/a" | "Viudo/a" | "Unión Libre / Convivencia"
+  gender: string
+  maritalStatus: string
   country: string
   province: string
   locality: string
-  neighborhood: string
+  neighborhood?: string
   street: string
   streetNumber: string
   phone: string
   email: string
   healthInsurance: string
   memberNumber: string
-  plan: string
+  plan?: string
   status: "Activo" | "Inactivo" | "Suspendido"
-  registeredBy: string
-  history: HistoryEvent[]
+  registeredBy?: string
+  history?: HistoryEvent[]
 }
 
 interface HistoryEvent {
@@ -34,10 +35,116 @@ interface HistoryEvent {
   user: string
 }
 
+interface Provincia {
+  id: number
+  nombre: string
+}
+
+interface Localidad {
+  id: number
+  nombre: string
+  provinciaId: number
+}
+
+interface ObraSocial {
+  id: number
+  nombre: string
+}
+
+const GENEROS = [
+  { value: 'FEMENINO', label: 'Femenino' },
+  { value: 'MASCULINO', label: 'Masculino' },
+  { value: 'OTRO', label: 'Otro' }
+] as const
+
+const ESTADOS_CIVILES = [
+  { value: 'SOLTERO', label: 'Soltero/a' },
+  { value: 'CASADO', label: 'Casado/a' },
+  { value: 'DIVORCIADO', label: 'Divorciado/a' },
+  { value: 'VIUDO', label: 'Viudo/a' },
+  { value: 'UNION_LIBRE', label: 'Unión Libre / Convivencia' }
+] as const
+
 export default function PatientManagementModule() {
   const [currentView, setCurrentView] = useState<"list" | "create" | "detail">("list")
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
   const [showSidebar, setShowSidebar] = useState(false)
+  const [patients, setPatients] = useState<Patient[]>([])
+
+  // Estados para los filtros de búsqueda
+  const [searchFilters, setSearchFilters] = useState({
+    dni: "",
+    birthDate: "",
+    fullName: ""
+  })
+
+  // Estado para el loading de la búsqueda
+  const [isSearching, setIsSearching] = useState(false)
+
+  function handleEditClick(patient: Patient) {
+    setSelectedPatient(patient)
+    setCurrentView("detail")
+  }
+
+  // Función para buscar pacientes con los filtros
+  const handleSearch = async () => {
+    setIsSearching(true)
+    try {
+      const queryParams = new URLSearchParams()
+      if (searchFilters.dni) queryParams.append("dni", searchFilters.dni)
+      if (searchFilters.birthDate) queryParams.append("birthDate", searchFilters.birthDate)
+      if (searchFilters.fullName) queryParams.append("fullName", searchFilters.fullName)
+
+      const response = await fetch(`/api/pacientes/busqueda?${queryParams}`)
+      if (!response.ok) throw new Error("Error al buscar pacientes")
+
+      const data = await response.json()
+
+      // Mapear los datos recibidos al formato de la interfaz Patient
+      const mappedData = data.map((p: any) => {
+        const [yyyy, mm, dd] = new Date(p.fechaNacimiento).toISOString().slice(0, 10).split("-")
+        const estadoBonito = p.estado
+          ? p.estado.charAt(0) + p.estado.slice(1).toLowerCase()
+          : "Activo"
+
+        return {
+          id: String(p.id),
+          patientId: `PAC-${String(p.id).padStart(3, "0")}`,
+          fullName: p.nombre,
+          lastName: p.apellido,
+          dni: p.dni,
+          birthDate: `${dd}/${mm}/${yyyy}`,
+          gender: p.genero,
+          maritalStatus: p.estadoCivil,
+          country: p.pais,
+          province: p.provincia?.nombre ?? "",
+          locality: p.localidad?.nombre ?? "",
+          neighborhood: p.barrio ?? "",
+          street: p.calle,
+          streetNumber: p.numero,
+          phone: p.celular,
+          email: p.email,
+          healthInsurance: p.obraSocial?.nombre ?? "Sin obra social",
+          memberNumber: p.numeroSocio,
+          plan: p.plan,
+          status: estadoBonito,
+          registeredBy: p.creadoPor?.username ?? "Sistema",
+          history: [],
+        }
+      })
+      setPatients(mappedData)
+    } catch (error) {
+      console.error("Error buscando pacientes:", error)
+      // Aquí podrías mostrar un toast o alerta de error
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  // Estados para las opciones de los selects
+  const [provincias, setProvincias] = useState<Provincia[]>([])
+  const [localidades, setLocalidades] = useState<Localidad[]>([])
+  const [obrasSociales, setObrasSociales] = useState<ObraSocial[]>([])
 
   const [newPatientForm, setNewPatientForm] = useState({
     fullName: "",
@@ -47,103 +154,257 @@ export default function PatientManagementModule() {
     gender: "",
     maritalStatus: "",
     country: "",
-    province: "",
-    locality: "",
+    province: "", // Este será el ID de la provincia
+    locality: "", // Este será el ID de la localidad
     neighborhood: "",
     street: "",
     streetNumber: "",
     phone: "",
     email: "",
-    healthInsurance: "",
+    healthInsurance: "", // Este será el ID de la obra social
     memberNumber: "",
     plan: "",
   })
 
+  // Cargar provincias al montar el componente
+  useEffect(() => {
+    const fetchProvincias = async () => {
+      try {
+        const res = await fetch('/api/categorias/provincias')
+        if (!res.ok) throw new Error('Error al cargar provincias')
+        const data = await res.json()
+        setProvincias(data)
+      } catch (error) {
+        console.error('Error:', error)
+      }
+    }
+    fetchProvincias()
+  }, [])
+
+  // Cargar localidades cuando se selecciona una provincia
+  useEffect(() => {
+    const fetchLocalidades = async () => {
+      if (!newPatientForm.province) return
+      try {
+        const res = await fetch(`/api/categorias/localidades?provinciaId=${newPatientForm.province}`)
+        if (!res.ok) throw new Error('Error al cargar localidades')
+        const data = await res.json()
+        setLocalidades(data)
+      } catch (error) {
+        console.error('Error:', error)
+      }
+    }
+    fetchLocalidades()
+  }, [newPatientForm.province])
+
+  // Cargar obras sociales al montar el componente
+  useEffect(() => {
+    const fetchObrasSociales = async () => {
+      try {
+        const res = await fetch('/api/categorias/obras-sociales')
+        if (!res.ok) throw new Error('Error al cargar obras sociales')
+        const data = await res.json()
+        setObrasSociales(data)
+      } catch (error) {
+        console.error('Error:', error)
+      }
+    }
+    fetchObrasSociales()
+  }, [])
+
+
   const [formErrors, setFormErrors] = useState<Record<string, string>>({})
 
-  const patients: Patient[] = [
-    {
-      id: "1",
-      patientId: "PAC-001",
-      registrationDate: "2024-01-10 14:30:00",
-      fullName: "María Elena",
-      lastName: "González Rodríguez",
-      dni: "12345678",
-      birthDate: "15/03/1985",
-      gender: "Femenino",
-      maritalStatus: "Casado/a",
-      country: "Argentina",
-      province: "Buenos Aires",
-      locality: "La Plata",
-      neighborhood: "Centro",
-      street: "Calle 7",
-      streetNumber: "1234",
-      phone: "(221)4567890",
-      email: "maria.gonzalez@email.com",
-      healthInsurance: "Swiss Medical",
-      memberNumber: "123456789",
-      plan: "210",
-      status: "Activo",
-      registeredBy: "Ana García",
-      history: [{ date: "2024-01-10 14:30", action: "Paciente registrado", user: "Ana García" }],
-    },
-    {
-      id: "2",
-      patientId: "PAC-002",
-      registrationDate: "2024-01-12 09:15:00",
-      fullName: "Carlos Alberto",
-      lastName: "Martínez López",
-      dni: "87654321",
-      birthDate: "22/07/1978",
-      gender: "Masculino",
-      maritalStatus: "Soltero/a",
-      country: "Argentina",
-      province: "Córdoba",
-      locality: "Córdoba Capital",
-      neighborhood: "Nueva Córdoba",
-      street: "Av. Hipólito Yrigoyen",
-      streetNumber: "567",
-      phone: "(351)2345678",
-      email: "carlos.martinez@email.com",
-      healthInsurance: "Osde",
-      memberNumber: "987654321",
-      plan: "450",
-      status: "Activo",
-      registeredBy: "Carlos López",
-      history: [
-        { date: "2024-01-12 09:15", action: "Paciente registrado", user: "Carlos López" },
-        { date: "2024-01-15 16:45", action: "Datos actualizados", user: "María Rodríguez" },
-      ],
-    },
-    {
-      id: "3",
-      patientId: "PAC-003",
-      registrationDate: "2023-12-28 11:20:00",
-      fullName: "Ana Sofía",
-      lastName: "Fernández Castro",
-      dni: "11223344",
-      birthDate: "10/11/1992",
-      gender: "Femenino",
-      maritalStatus: "Divorciado/a",
-      country: "Argentina",
-      province: "Santa Fe",
-      locality: "Rosario",
-      neighborhood: "Centro",
-      street: "San Martín",
-      streetNumber: "890",
-      phone: "(341)6789012",
-      email: "ana.fernandez@email.com",
-      healthInsurance: "Federada",
-      memberNumber: "456789123",
-      plan: "300",
-      status: "Suspendido",
-      registeredBy: "María Rodríguez",
-      history: [
-        { date: "2023-12-28 11:20", action: "Paciente registrado", user: "María Rodríguez" },
-        { date: "2024-01-20 10:30", action: "Estado cambiado a Suspendido", user: "Ana García" },
-      ],
-    },
-  ]
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // Validar el formulario sin importar si es creación o edición
+    const errors = validateForm()
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors)
+      return
+    }
+
+    // Validar todos los campos requeridos
+    const requiredFields = {
+      'nombre': newPatientForm.fullName,
+      'apellido': newPatientForm.lastName,
+      'dni': newPatientForm.dni,
+      'fechaNacimiento': newPatientForm.birthDate,
+      'genero': newPatientForm.gender,
+      'estadoCivil': newPatientForm.maritalStatus,
+      'pais': newPatientForm.country,
+      'provincia': newPatientForm.province,
+      'localidad': newPatientForm.locality,
+      'calle': newPatientForm.street,
+      'numero': newPatientForm.streetNumber,
+      'celular': newPatientForm.phone,
+      'email': newPatientForm.email,
+      'obraSocial': newPatientForm.healthInsurance,
+      'numeroSocio': newPatientForm.memberNumber,
+      'plan': newPatientForm.plan
+    }
+
+    const missingFields = Object.entries(requiredFields)
+      .filter(([_, value]) => !value)
+      .map(([key]) => key)
+
+    if (missingFields.length > 0) {
+      const errors = missingFields.reduce((acc, field) => ({
+        ...acc,
+        [field]: 'Este campo es requerido'
+      }), {})
+      setFormErrors(errors)
+      throw new Error(`Los siguientes campos son requeridos: ${missingFields.join(', ')}`)
+    }
+
+    const formData = {
+      nombre: newPatientForm.fullName,
+      apellido: newPatientForm.lastName,
+      dni: newPatientForm.dni,
+      fechaNacimiento: newPatientForm.birthDate,
+      genero: newPatientForm.gender,
+      estadoCivil: newPatientForm.maritalStatus,
+      pais: newPatientForm.country,
+      provinciaId: Number(newPatientForm.province),
+      localidadId: Number(newPatientForm.locality),
+      barrio: newPatientForm.neighborhood || '',
+      calle: newPatientForm.street,
+      numero: newPatientForm.streetNumber,
+      celular: newPatientForm.phone,
+      email: newPatientForm.email,
+      obraSocialId: Number(newPatientForm.healthInsurance),
+      numeroSocio: newPatientForm.memberNumber,
+      plan: newPatientForm.plan,
+    }
+
+    try {
+      // Debug de datos enviados
+      console.log('Enviando datos:', {
+        ...formData,
+        // Verificar tipos de datos críticos
+        _debug: {
+          provinciaId: typeof formData.provinciaId,
+          localidadId: typeof formData.localidadId,
+          obraSocialId: typeof formData.obraSocialId,
+          genero: formData.genero,
+          estadoCivil: formData.estadoCivil
+        }
+      })
+
+      const res = await fetch("/api/pacientes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
+
+      const responseData = await res.json()
+      console.log('Respuesta del servidor:', {
+        status: res.status,
+        statusText: res.statusText,
+        data: responseData
+      })
+
+      if (!res.ok) {
+        const errorMessage = responseData.details || responseData.error || 'Error desconocido'
+        console.error('Error al crear paciente:', {
+          status: res.status,
+          message: errorMessage,
+          response: responseData
+        })
+        throw new Error(errorMessage)
+      }
+
+      console.log("Paciente creado exitosamente:", responseData)
+
+      // limpiar form
+      setNewPatientForm({
+        fullName: "",
+        lastName: "",
+        dni: "",
+        birthDate: "",
+        gender: "",
+        maritalStatus: "",
+        country: "",
+        province: "",
+        locality: "",
+        neighborhood: "",
+        street: "",
+        streetNumber: "",
+        phone: "",
+        email: "",
+        healthInsurance: "",
+        memberNumber: "",
+        plan: "",
+      })
+    } catch (err) {
+      console.error("Error:", err)
+    }
+  }
+
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Función para obtener todos los pacientes
+  const fetchPatients = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch("/api/pacientes")
+      if (!res.ok) throw new Error("Error al cargar pacientes")
+      const data = await res.json()
+
+      //adaptamos los datos de la BD al formato de la tabla 
+      const mapped = data.map((p: any) => {
+        // sacar la parte de fecha en UTC para no “correr” el día
+        const [yyyy, mm, dd] = new Date(p.fechaNacimiento).toISOString().slice(0, 10).split("-");
+
+        // Normalizar estado a “Activo/Inactivo/Suspendido”
+        const estadoBonito = p.estado
+          ? p.estado.charAt(0) + p.estado.slice(1).toLowerCase()
+          : "Activo";
+
+        return {
+          id: String(p.id),
+          // “PAC-001” es solo un código visual; si solo queremos mostrar “1”, cambiar a String(p.id)
+          patientId: `PAC-${String(p.id).padStart(3, "0")}`,
+          fullName: p.nombre,
+          lastName: p.apellido,
+          dni: p.dni,
+          // formato dd/mm/yyyy sin tocar zona horaria
+          birthDate: `${dd}/${mm}/${yyyy}`,
+          gender: p.genero,
+          maritalStatus: p.estadoCivil,
+          country: p.pais,
+          province: p.provincia?.nombre ?? "",
+          locality: p.localidad?.nombre ?? "",
+          neighborhood: p.barrio ?? "",
+          street: p.calle,
+          streetNumber: p.numero,
+          phone: p.celular,
+          email: p.email,
+          healthInsurance: p.obraSocial?.nombre ?? "Sin obra social",
+          memberNumber: p.numeroSocio,
+          plan: p.plan,
+          status: estadoBonito,
+          registeredBy: p.creadoPor?.username ?? "Sistema",
+          history: [],
+        };
+      });
+
+
+      setPatients(mapped)
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchPatients()
+  }, [])
+
 
   const provinces = [
     "Buenos Aires",
@@ -178,7 +439,7 @@ export default function PatientManagementModule() {
   const inactivePatients = patients.filter((p) => p.status === "Inactivo").length
   const suspendedPatients = patients.filter((p) => p.status === "Suspendido").length
 
-  const validateForm = () => {
+  const validateForm = (): Record<string, string> => {
     const errors: Record<string, string> = {}
 
     // Validaciones de datos personales
@@ -204,8 +465,8 @@ export default function PatientManagementModule() {
 
     if (!newPatientForm.birthDate.trim()) {
       errors.birthDate = "La fecha de nacimiento es obligatoria"
-    } else if (!/^\d{2}\/\d{2}\/\d{4}$/.test(newPatientForm.birthDate)) {
-      errors.birthDate = "Formato debe ser DD/MM/AAAA"
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(newPatientForm.birthDate)) {
+      errors.birthDate = "Formato debe ser YYYY-MM-DD"
     }
 
     if (!newPatientForm.gender) {
@@ -227,10 +488,8 @@ export default function PatientManagementModule() {
       errors.province = "La provincia es obligatoria"
     }
 
-    if (!newPatientForm.locality.trim()) {
+    if (!newPatientForm.locality) {
       errors.locality = "La localidad es obligatoria"
-    } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(newPatientForm.locality)) {
-      errors.locality = "No se permiten números ni caracteres alfanuméricos"
     }
 
     if (!newPatientForm.neighborhood.trim()) {
@@ -251,7 +510,7 @@ export default function PatientManagementModule() {
 
     if (!newPatientForm.phone.trim()) {
       errors.phone = "El número de celular es obligatorio"
-    } else if (!/^$$\d{3}$$\d{7}$/.test(newPatientForm.phone)) {
+    } else if (!/^\(\d{3}\)\d{7}$/.test(newPatientForm.phone)) {
       errors.phone = "Número inválido, revise el formato"
     }
 
@@ -279,14 +538,27 @@ export default function PatientManagementModule() {
     }
 
     setFormErrors(errors)
-    return Object.keys(errors).length === 0
+    return errors
   }
 
   const isFormValid = () => {
-    return (
-      Object.values(newPatientForm).every((value) => value.toString().trim() !== "") &&
-      Object.keys(formErrors).length === 0
-    )
+    const requiredFields = [
+      newPatientForm.fullName,
+      newPatientForm.lastName,
+      newPatientForm.dni,
+      newPatientForm.birthDate,
+      newPatientForm.gender,
+      newPatientForm.maritalStatus,
+      newPatientForm.country,
+      newPatientForm.street,
+      newPatientForm.streetNumber,
+      newPatientForm.phone,
+      newPatientForm.email,
+      newPatientForm.healthInsurance,
+      newPatientForm.memberNumber,
+      newPatientForm.plan
+    ]
+    return requiredFields.every(field => field !== "")
   }
 
   const formatPhoneNumber = (value: string) => {
@@ -299,7 +571,7 @@ export default function PatientManagementModule() {
     return `(${numbers.slice(0, 3)})${numbers.slice(3, 10)}`
   }
 
-  const renderCreateView = () => (
+  const renderCreateView = (isEdit: boolean = false) => (
     <div className="screen-transition">
       {/* Breadcrumb */}
       <div className="flex items-center space-x-2 text-sm text-gray-600 mb-6">
@@ -331,9 +603,8 @@ export default function PatientManagementModule() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Nombre Completo *</label>
               <input
                 type="text"
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  formErrors.fullName ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${formErrors.fullName ? "border-red-500" : "border-gray-300"
+                  }`}
                 value={newPatientForm.fullName}
                 onChange={(e) => {
                   setNewPatientForm({ ...newPatientForm, fullName: e.target.value })
@@ -351,9 +622,8 @@ export default function PatientManagementModule() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Apellido Completo *</label>
               <input
                 type="text"
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  formErrors.lastName ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${formErrors.lastName ? "border-red-500" : "border-gray-300"
+                  }`}
                 value={newPatientForm.lastName}
                 onChange={(e) => {
                   setNewPatientForm({ ...newPatientForm, lastName: e.target.value })
@@ -372,9 +642,8 @@ export default function PatientManagementModule() {
               <input
                 type="text"
                 maxLength={8}
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  formErrors.dni ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${formErrors.dni ? "border-red-500" : "border-gray-300"
+                  }`}
                 value={newPatientForm.dni}
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, "")
@@ -392,29 +661,24 @@ export default function PatientManagementModule() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Fecha de Nacimiento *</label>
               <input
-                type="text"
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  formErrors.birthDate ? "border-red-500" : "border-gray-300"
-                }`}
-                value={newPatientForm.birthDate}
+                type="date"
+                value={newPatientForm.birthDate} // debe estar en YYYY-MM-DD
                 onChange={(e) => {
-                  setNewPatientForm({ ...newPatientForm, birthDate: e.target.value })
+                  setNewPatientForm({ ...newPatientForm, birthDate: e.target.value });
                   if (formErrors.birthDate) {
-                    const newErrors = { ...formErrors }
-                    delete newErrors.birthDate
-                    setFormErrors(newErrors)
+                    const newErrors = { ...formErrors };
+                    delete newErrors.birthDate;
+                    setFormErrors(newErrors);
                   }
                 }}
-                placeholder="DD/MM/AAAA"
               />
               {formErrors.birthDate && <p className="text-red-500 text-sm mt-1">{formErrors.birthDate}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Género *</label>
               <select
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  formErrors.gender ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${formErrors.gender ? "border-red-500" : "border-gray-300"
+                  }`}
                 value={newPatientForm.gender}
                 onChange={(e) => {
                   setNewPatientForm({ ...newPatientForm, gender: e.target.value })
@@ -426,18 +690,19 @@ export default function PatientManagementModule() {
                 }}
               >
                 <option value="">Seleccionar género</option>
-                <option value="Femenino">Femenino</option>
-                <option value="Masculino">Masculino</option>
-                <option value="Otro">Otro</option>
+                {GENEROS.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
               </select>
               {formErrors.gender && <p className="text-red-500 text-sm mt-1">{formErrors.gender}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Estado Civil *</label>
               <select
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  formErrors.maritalStatus ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${formErrors.maritalStatus ? "border-red-500" : "border-gray-300"
+                  }`}
                 value={newPatientForm.maritalStatus}
                 onChange={(e) => {
                   setNewPatientForm({ ...newPatientForm, maritalStatus: e.target.value })
@@ -449,11 +714,11 @@ export default function PatientManagementModule() {
                 }}
               >
                 <option value="">Seleccionar estado civil</option>
-                <option value="Soltero/a">Soltero/a</option>
-                <option value="Casado/a">Casado/a</option>
-                <option value="Divorciado/a">Divorciado/a</option>
-                <option value="Viudo/a">Viudo/a</option>
-                <option value="Unión Libre / Convivencia">Unión Libre / Convivencia</option>
+                {ESTADOS_CIVILES.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
               </select>
               {formErrors.maritalStatus && <p className="text-red-500 text-sm mt-1">{formErrors.maritalStatus}</p>}
             </div>
@@ -468,9 +733,8 @@ export default function PatientManagementModule() {
               <label className="block text-sm font-medium text-gray-700 mb-2">País *</label>
               <input
                 type="text"
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  formErrors.country ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${formErrors.country ? "border-red-500" : "border-gray-300"
+                  }`}
                 value={newPatientForm.country}
                 onChange={(e) => {
                   setNewPatientForm({ ...newPatientForm, country: e.target.value })
@@ -487,12 +751,15 @@ export default function PatientManagementModule() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Provincia *</label>
               <select
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  formErrors.province ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${formErrors.province ? "border-red-500" : "border-gray-300"
+                  }`}
                 value={newPatientForm.province}
                 onChange={(e) => {
-                  setNewPatientForm({ ...newPatientForm, province: e.target.value })
+                  setNewPatientForm({
+                    ...newPatientForm,
+                    province: e.target.value,
+                    locality: '' // Resetear la localidad cuando cambia la provincia
+                  })
                   if (formErrors.province) {
                     const newErrors = { ...formErrors }
                     delete newErrors.province
@@ -501,9 +768,9 @@ export default function PatientManagementModule() {
                 }}
               >
                 <option value="">Seleccionar provincia</option>
-                {provinces.map((province) => (
-                  <option key={province} value={province}>
-                    {province}
+                {provincias.map((provincia) => (
+                  <option key={provincia.id} value={provincia.id}>
+                    {provincia.nombre}
                   </option>
                 ))}
               </select>
@@ -511,11 +778,9 @@ export default function PatientManagementModule() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Localidad *</label>
-              <input
-                type="text"
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  formErrors.locality ? "border-red-500" : "border-gray-300"
-                }`}
+              <select
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${formErrors.locality ? "border-red-500" : "border-gray-300"
+                  }`}
                 value={newPatientForm.locality}
                 onChange={(e) => {
                   setNewPatientForm({ ...newPatientForm, locality: e.target.value })
@@ -525,17 +790,23 @@ export default function PatientManagementModule() {
                     setFormErrors(newErrors)
                   }
                 }}
-                placeholder="Ingrese la localidad"
-              />
+                disabled={!newPatientForm.province} // Deshabilitar si no hay provincia seleccionada
+              >
+                <option value="">Seleccionar localidad</option>
+                {localidades.map((localidad) => (
+                  <option key={localidad.id} value={localidad.id}>
+                    {localidad.nombre}
+                  </option>
+                ))}
+              </select>
               {formErrors.locality && <p className="text-red-500 text-sm mt-1">{formErrors.locality}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Barrio *</label>
               <input
                 type="text"
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  formErrors.neighborhood ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${formErrors.neighborhood ? "border-red-500" : "border-gray-300"
+                  }`}
                 value={newPatientForm.neighborhood}
                 onChange={(e) => {
                   setNewPatientForm({ ...newPatientForm, neighborhood: e.target.value })
@@ -553,9 +824,8 @@ export default function PatientManagementModule() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Calle *</label>
               <input
                 type="text"
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  formErrors.street ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${formErrors.street ? "border-red-500" : "border-gray-300"
+                  }`}
                 value={newPatientForm.street}
                 onChange={(e) => {
                   setNewPatientForm({ ...newPatientForm, street: e.target.value })
@@ -573,9 +843,8 @@ export default function PatientManagementModule() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Número *</label>
               <input
                 type="text"
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  formErrors.streetNumber ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${formErrors.streetNumber ? "border-red-500" : "border-gray-300"
+                  }`}
                 value={newPatientForm.streetNumber}
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, "")
@@ -594,9 +863,8 @@ export default function PatientManagementModule() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Número de Celular *</label>
               <input
                 type="text"
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  formErrors.phone ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${formErrors.phone ? "border-red-500" : "border-gray-300"
+                  }`}
                 value={newPatientForm.phone}
                 onChange={(e) => {
                   const formatted = formatPhoneNumber(e.target.value)
@@ -618,9 +886,8 @@ export default function PatientManagementModule() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Correo Electrónico *</label>
               <input
                 type="email"
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  formErrors.email ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${formErrors.email ? "border-red-500" : "border-gray-300"
+                  }`}
                 value={newPatientForm.email}
                 onChange={(e) => {
                   setNewPatientForm({ ...newPatientForm, email: e.target.value })
@@ -644,9 +911,8 @@ export default function PatientManagementModule() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Obra Social *</label>
               <select
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  formErrors.healthInsurance ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${formErrors.healthInsurance ? "border-red-500" : "border-gray-300"
+                  }`}
                 value={newPatientForm.healthInsurance}
                 onChange={(e) => {
                   setNewPatientForm({ ...newPatientForm, healthInsurance: e.target.value })
@@ -658,9 +924,9 @@ export default function PatientManagementModule() {
                 }}
               >
                 <option value="">Seleccionar obra social</option>
-                {healthInsurances.map((insurance) => (
-                  <option key={insurance} value={insurance}>
-                    {insurance}
+                {obrasSociales.map((obraSocial) => (
+                  <option key={obraSocial.id} value={obraSocial.id}>
+                    {obraSocial.nombre}
                   </option>
                 ))}
               </select>
@@ -670,9 +936,8 @@ export default function PatientManagementModule() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Número de Socio *</label>
               <input
                 type="text"
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  formErrors.memberNumber ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${formErrors.memberNumber ? "border-red-500" : "border-gray-300"
+                  }`}
                 value={newPatientForm.memberNumber}
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, "")
@@ -691,9 +956,8 @@ export default function PatientManagementModule() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Plan *</label>
               <input
                 type="text"
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  formErrors.plan ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent ${formErrors.plan ? "border-red-500" : "border-gray-300"
+                  }`}
                 value={newPatientForm.plan}
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, "")
@@ -718,17 +982,11 @@ export default function PatientManagementModule() {
               Cancelar
             </button>
             <button
-              onClick={() => {
-                if (validateForm()) {
-                  // Aquí se guardaría el paciente
-                  setCurrentView("list")
-                }
-              }}
-              className={`px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all ${
-                isFormValid()
-                  ? "bg-purple-600 hover:bg-purple-700 text-white"
-                  : "bg-gray-400 text-gray-600 cursor-not-allowed"
-              }`}
+              onClick={(e) => handleSubmit(e)}
+              className={`px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all ${isFormValid()
+                ? "bg-purple-600 hover:bg-purple-700 text-white"
+                : "bg-gray-400 text-gray-600 cursor-not-allowed"
+                }`}
               disabled={!isFormValid()}
             >
               Guardar
@@ -758,7 +1016,7 @@ export default function PatientManagementModule() {
           </h2>
           <p className="text-gray-600 text-lg">Administra y controla el registro de pacientes</p>
         </div>
-        <div className="flex space-x-4">
+        <div className="flex items-center space-x-4">
           <button
             onClick={() => setCurrentView("create")}
             className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-xl font-semibold flex items-center space-x-3 text-lg shadow-lg hover:shadow-xl transition-all"
@@ -829,6 +1087,8 @@ export default function PatientManagementModule() {
             <label className="block text-sm font-medium text-gray-700 mb-2">DNI</label>
             <input
               type="text"
+              value={searchFilters.dni}
+              onChange={(e) => setSearchFilters({ ...searchFilters, dni: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="12345678"
             />
@@ -836,26 +1096,45 @@ export default function PatientManagementModule() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Fecha de Nacimiento</label>
             <input
-              type="text"
+              type="date"
+              value={searchFilters.birthDate}
+              onChange={(e) => setSearchFilters({ ...searchFilters, birthDate: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              placeholder="DD/MM/AAAA"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Nombre Completo</label>
             <input
               type="text"
+              value={searchFilters.fullName}
+              onChange={(e) => setSearchFilters({ ...searchFilters, fullName: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="Nombre y apellido"
             />
           </div>
         </div>
         <div className="flex space-x-4">
-          <button className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all">
+          <button
+            onClick={() => {
+              setSearchFilters({
+                dni: "",
+                birthDate: "",
+                fullName: ""
+              })
+              // Recargar la lista original de pacientes
+              fetchPatients()
+            }}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+            disabled={isSearching}
+          >
             Limpiar Filtros
           </button>
-          <button className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all">
-            Buscar Pacientes
+          <button
+            onClick={handleSearch}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+            disabled={isSearching}
+          >
+            {isSearching ? 'Buscando...' : 'Buscar Pacientes'}
           </button>
         </div>
       </div>
@@ -881,24 +1160,28 @@ export default function PatientManagementModule() {
             <tbody>
               {patients.map((patient, index) => (
                 <tr key={patient.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                  <td className="px-6 py-4 font-semibold text-purple-800">{patient.patientId}</td>
+                  <td className="px-6 py-4 font-semibold text-purple-800">{patient.id}</td>
                   <td className="px-6 py-4">
                     <div className="font-medium text-gray-900">
                       {patient.fullName} {patient.lastName}
                     </div>
                   </td>
                   <td className="px-6 py-4 font-semibold text-gray-900">{patient.dni}</td>
-                  <td className="px-6 py-4 text-gray-700">{patient.birthDate}</td>
-                  <td className="px-6 py-4 text-gray-700">{patient.healthInsurance}</td>
+                  <td className="px-6 py-4 text-gray-700">
+                    {patient.birthDate || 'No registrada'}
+                  </td>
+                  <td className="px-6 py-4 text-gray-700">
+                    {patient.healthInsurance || "Sin obra social"}
+                  </td>
+
                   <td className="px-6 py-4">
                     <span
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        patient.status === "Activo"
-                          ? "bg-green-100 text-green-800"
-                          : patient.status === "Inactivo"
-                            ? "bg-gray-100 text-gray-800"
-                            : "bg-red-100 text-red-800"
-                      }`}
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${patient.status === "Activo"
+                        ? "bg-green-100 text-green-800"
+                        : patient.status === "Inactivo"
+                          ? "bg-gray-100 text-gray-800"
+                          : "bg-red-100 text-red-800"
+                        }`}
                     >
                       {patient.status}
                     </span>
@@ -914,9 +1197,14 @@ export default function PatientManagementModule() {
                       >
                         Ver
                       </button>
-                      <button className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-600 transition-colors">
+                      <Link
+                        href={`/Pacientes/${patient.id}/editar`}
+                        className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 bg-violet-600 text-white hover:bg-violet-700"
+                        aria-label={`Editar ${patient.fullName} ${patient.lastName}`}
+                      >
                         Editar
-                      </button>
+                      </Link>
+
                     </div>
                   </td>
                 </tr>
@@ -941,14 +1229,14 @@ export default function PatientManagementModule() {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
           </svg>
-          <span className="text-purple-500 font-medium">Detalle {selectedPatient.patientId}</span>
+          <span className="text-purple-500 font-medium">Detalle {selectedPatient.id}</span>
         </div>
 
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent mb-2">
-              Paciente {selectedPatient.patientId}
+              Paciente {selectedPatient.id}
             </h2>
             <p className="text-gray-600 text-lg">Información completa del paciente</p>
           </div>
@@ -995,13 +1283,12 @@ export default function PatientManagementModule() {
                 <div>
                   <label className="text-sm font-medium text-gray-600">Estado</label>
                   <span
-                    className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                      selectedPatient.status === "Activo"
-                        ? "bg-green-100 text-green-800"
-                        : selectedPatient.status === "Inactivo"
-                          ? "bg-gray-100 text-gray-800"
-                          : "bg-red-100 text-red-800"
-                    }`}
+                    className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${selectedPatient.status === "Activo"
+                      ? "bg-green-100 text-green-800"
+                      : selectedPatient.status === "Inactivo"
+                        ? "bg-gray-100 text-gray-800"
+                        : "bg-red-100 text-red-800"
+                      }`}
                   >
                     {selectedPatient.status}
                   </span>
@@ -1061,17 +1348,8 @@ export default function PatientManagementModule() {
           <div className="glass-effect rounded-2xl p-8 bg-white/95 backdrop-blur-sm border border-white/20">
             <h3 className="text-2xl font-bold text-purple-800 mb-6">Historial de Movimientos</h3>
             <div className="space-y-4">
-              {selectedPatient.history.map((event, index) => (
-                <div key={index} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
-                  <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">{event.action}</p>
-                    <p className="text-sm text-gray-500">
-                      Por: {event.user} - {event.date}
-                    </p>
-                  </div>
-                </div>
-              ))}
+              {/* TODO: Implementar historial */}
+              <p className="text-gray-500">No hay movimientos registrados</p>
             </div>
           </div>
         </div>

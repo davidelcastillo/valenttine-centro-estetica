@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/Button'   // 👈 usa tu botón
+import { Button } from '@/components/ui/button'   // 👈 usa tu botón
 
 type Props = {
   open: boolean

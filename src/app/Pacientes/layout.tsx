@@ -1,35 +1,10 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { GeistSans } from "geist/font/sans"
-import { GeistMono } from "geist/font/mono"
-import { Analytics } from "@vercel/analytics/next"
-import { Poppins } from "next/font/google"
-import { Suspense } from "react"
-import "./globals.css"
-
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-poppins",
-})
+import type { Metadata } from 'next';
+import AuthShell from '@/components/layout/AuthShell';
 
 export const metadata: Metadata = {
-  title: "v0 App",
-  description: "Created with v0",
-  generator: "v0.app",
-}
+  title: 'Pacientes · ERP Valenttine',
+};
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
-  return (
-    <html lang="es" className={`${GeistSans.variable} ${GeistMono.variable} ${poppins.variable}`}>
-      <body className={`font-sans antialiased`}>
-        <Suspense fallback={null}>{children}</Suspense>
-        <Analytics />
-      </body>
-    </html>
-  )
+export default function PacientesLayout({ children }: { children: React.ReactNode }) {
+  return <AuthShell>{children}</AuthShell>;
 }

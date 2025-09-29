@@ -92,8 +92,8 @@ model Prestacion {
 // -----------------------------
 model Paciente {
   id              Int       @id @default(autoincrement())
-  userId           Int       @unique
-  usuario          Usuario   @relation("PacienteUsuario", fields: [userId], references: [id])
+  userId          Int       @unique
+  usuario         Usuario   @relation("PacienteUsuario", fields: [userId], references: [id])
   creadoPorId     Int?
   creadoPor       Usuario?   @relation("PacienteCreadoPor", fields: [creadoPorId], references: [id])
   numeroInterno   String    @unique
