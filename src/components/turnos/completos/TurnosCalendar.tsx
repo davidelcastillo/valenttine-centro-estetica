@@ -1,40 +1,28 @@
-// src/components/turnos/completos/TurnosCalendar.tsx
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect, useMemo, useState } from 'react';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns';
-
 import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import esLocale from '@fullcalendar/core/locales/es';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-// ⬇️ sin imports de CSS en v6
 const FullCalendar = dynamic(
   () => import('@fullcalendar/react').then(m => m.default),
   { ssr: false }
 ) as any;
 
 type DiaResumen = { total: number; porProfesional: { id: number; count: number }[] };
-
 type Props = {
-  resumen?: Record<string, DiaResumen>; // key = 'YYYY-MM-DD'
   onDayClick?: (isoDate: string) => void;
+  resumen?: Record<string, DiaResumen>;
 };
 
-export default function TurnosCalendar({ resumen = {}, onDayClick }: Props) {
-  const [current, setCurrent] = useState(new Date());
+export default function TurnosCalendar({ onDayClick, resumen: resumenProp = {} }: Props) {
+  const [resumen, setResumen] = useState<Record<string, DiaResumen>>({});
+  const [loading, setLoading] = useState(false);
+  const lastRangeRef = useRef<string>('');
+  const abortRef = useRef<AbortController | null>(null);
 
-  const gridRange = useMemo(() => {
-    const mStart = startOfMonth(current);
-    const mEnd = endOfMonth(current);
-    const from = format(startOfWeek(mStart, { weekStartsOn: 1 }), 'yyyy-MM-dd');
-    const to = format(endOfWeek(mEnd, { weekStartsOn: 1 }), 'yyyy-MM-dd');
-    return { from, to };
-  }, [current]);
-
-  // Estilos de refuerzo (opcional)
   useEffect(() => {
     const style = document.createElement('style');
     style.innerHTML = `
@@ -59,57 +47,103 @@ export default function TurnosCalendar({ resumen = {}, onDayClick }: Props) {
     return () => { document.head.removeChild(style); };
   }, []);
 
+  const onDatesSet = useCallback(async (arg: any) => {
+    if (Object.keys(resumenProp).length) return;
+
+    const from = arg.startStr.slice(0, 10);
+    const endExclusive = new Date(arg.end);
+    endExclusive.setUTCDate(endExclusive.getUTCDate() - 1);
+    const to = endExclusive.toISOString().slice(0, 10);
+
+    const key = `${from}:${to}`;
+    if (key === lastRangeRef.current) return;
+    lastRangeRef.current = key;
+
+    try {
+      abortRef.current?.abort();
+      const ac = new AbortController();
+      abortRef.current = ac;
+      setLoading(true);
+
+      const r = await fetch(`/api/turnos/resumen?from=${from}&to=${to}`, { signal: ac.signal });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const rows: { date: string; total: number; porProfesional: { profesionalId: number; count: number }[] }[] = await r.json();
+      const map: Record<string, DiaResumen> = {};
+      rows.forEach(d => {
+        map[d.date] = {
+          total: d.total,
+          porProfesional: (d.porProfesional || []).map(p => ({ id: p.profesionalId, count: p.count })),
+        };
+      });
+      setResumen(map);
+    } catch (e) {
+      if ((e as any)?.name !== 'AbortError') console.error('Resumen turnos error:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [resumenProp]);
+
+  const data = Object.keys(resumenProp).length ? resumenProp : resumen;
+
   return (
     <div className="space-y-4">
-      <FullCalendar
-        locales={[esLocale]}
-        locale="es"
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
-        firstDay={1}
-        fixedWeekCount={false}
-        height="auto"
-        headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridDay' }}
-        datesSet={(arg: any) => setCurrent(arg.start)}
-        dayMaxEventRows={3}
-        events={[]} // mes sin eventos (solo marcadores propios)
-        dateClick={(arg: any) => onDayClick?.(arg.dateStr)}
-        dayCellContent={(arg: any) => {
-          const iso = arg.date.toISOString().slice(0, 10);
-          const info: DiaResumen | undefined = resumen[iso];
+      <div className="relative">
+        {loading && (
+          <div className="absolute inset-0 z-10 grid place-items-center rounded-2xl bg-white/60 backdrop-blur-sm">
+            <div className="animate-pulse text-sm text-[#301247]/70">Cargando calendario…</div>
+          </div>
+        )}
+        <FullCalendar
+          locales={[esLocale]}
+          locale="es"
+          plugins={[dayGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          firstDay={1}
+          fixedWeekCount={false}
+          height="auto"
+          headerToolbar={{ left: 'prev,next today', center: 'title', right: '' }}
+          datesSet={onDatesSet}
+          dayMaxEventRows={3}
+          events={[]}
+          dateClick={(arg: any) => onDayClick?.(arg.dateStr)}
+          dayCellContent={(arg: any) => {
+            const iso = arg.date.toISOString().slice(0, 10);
+            const info = data[iso];
+            const isToday = new Date().toDateString() === arg.date.toDateString();
 
-          return (
-            <div className="relative flex h-full flex-col items-center justify-center rounded-2xl bg-white py-6 transition hover:scale-[1.02] hover:shadow-md">
-              <div className="text-base font-semibold text-[#301247]">{arg.date.getDate()}</div>
-
-              {info?.total ? (
-                <>
-                  <div
-                    className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white shadow-md"
-                    style={{ background: '#AC5BF3' }}
-                    title={`${info.total} turno${info.total > 1 ? 's' : ''}`}
-                  >
-                    {info.total}
-                  </div>
-
-                  <div className="mt-2 flex gap-1">
-                    {info.porProfesional.slice(0, 3).map((p) => (
-                      <span key={p.id} className="inline-block h-2 w-2 rounded-full bg-[#301247]" />
-                    ))}
-                    {info.porProfesional.length > 3 && (
-                      <span className="text-[10px] text-[#301247]/70">
-                        +{info.porProfesional.length - 3}
-                      </span>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <div className="mt-2 text-[11px] text-gray-400">Sin turnos</div>
-              )}
-            </div>
-          );
-        }}
-      />
+            return (
+              <div
+                className={`relative flex h-full flex-col items-center justify-center rounded-2xl bg-white py-6 transition hover:scale-[1.02] hover:shadow-md ${isToday ? 'ring-2 ring-[#AC5BF3]/70' : ''}`}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onDayClick?.(iso)}
+              >
+                <div className="text-base font-semibold text-[#301247] flex items-center gap-2">
+                  {arg.date.getDate()}
+                  {isToday && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#AC5BF3] text-white">Hoy</span>}
+                </div>
+                {info?.total ? (
+                  <>
+                    <div className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white shadow-md" style={{ background: '#AC5BF3' }}>
+                      {info.total}
+                    </div>
+                    <div className="mt-2 flex gap-1">
+                      {info.porProfesional.slice(0, 3).map(p => (
+                        <span key={p.id} className="inline-block h-2 w-2 rounded-full bg-[#301247]" />
+                      ))}
+                      {info.porProfesional.length > 3 && (
+                        <span className="text-[10px] text-[#301247]/70">+{info.porProfesional.length - 3}</span>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="mt-2 text-[11px] text-gray-400">Sin turnos</div>
+                )}
+              </div>
+            );
+          }}
+        />
+      </div>
     </div>
   );
 }
