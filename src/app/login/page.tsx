@@ -1,8 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Button from '@/components/ui/button'
-//import { Button } from '@/components/ui/button'
-//import { Input } from '@/components/ui/input'
 import { Input } from '@/components/ui/input'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
@@ -74,7 +72,7 @@ export default function LoginPage() {
       setBanner(`Bienvenido, ${data.role}`)
       setTimeout(() => {
         if (nextPath) return router.replace(nextPath)
-        if (data.role === 'RECEPCIONISTA') router.replace('/Pacientes') // o /reception si preferís
+        if (data.role === 'RECEPCIONISTA') router.replace('/dashboard')
         else if (data.role === 'MEDICO')   router.replace('/specialist')
         else                                router.replace('/admin')
       }, 5000)
@@ -116,10 +114,10 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <h1 className="text-4xl font-bold font-display text-white/90 leading-tight">
-                Centro de Atención
+                Centro Médico
               </h1>
               <h2 className="text-3xl font-bold font-display text-purple-200 tracking-wide">
-                Médica
+                Estético
               </h2>
               <div className="relative">
                 <h3 className="text-5xl font-extrabold font-display bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">
@@ -133,7 +131,7 @@ export default function LoginPage() {
           <div className="space-y-6">
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <p className="text-xl text-purple-100 leading-relaxed font-medium">
-                Bienvenido a Centro de Atención Médica Valenttine
+                Bienvenido a tu plataforma de gestión de salud
               </p>
               <div className="mt-4 flex justify-center gap-2">
                 <div className="w-2 h-2 bg-purple-300 rounded-full animate-pulse" />
