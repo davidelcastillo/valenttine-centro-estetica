@@ -10,21 +10,23 @@ type RoleKey = 'RECEPCIONISTA' | 'MEDICO' | 'GERENTE';
 
 const ACL: Record<string, RoleKey[]> = {
   '/Pacientes':  ['RECEPCIONISTA', 'GERENTE'],
-  '/specialist': ['MEDICO', 'GERENTE'],
+  '/profesionales': ['RECEPCIONISTA', 'GERENTE'],
   '/admin':      ['GERENTE'],
-  '/reception':  ['RECEPCIONISTA', 'GERENTE'],
+  '/turnos': ["RECEPCIONISTA"],
+  //'/reception':  ['RECEPCIONISTA', 'GERENTE'], TODAVIA NO EXISTE
   '/dashboard':  ['RECEPCIONISTA', 'MEDICO', 'GERENTE'],
 } as const;
 
 const LABELS: Record<keyof typeof ACL, string> = {
   '/Pacientes':  'Pacientes',
-  '/specialist': 'Profesionales',
+  '/profesionales': 'Profesionales',
   '/admin':      'Administración',
-  '/reception':  'Recepción',
+  //'/reception':  'Recepción',
   '/dashboard':  'Dashboard',
+  '/turnos': 'Turnos',
 } as const;
 
-const MENU_ORDER = ['/dashboard', '/reception', '/Pacientes', '/specialist', '/admin'] as const;
+const MENU_ORDER = ['/dashboard', '/turnos',/*'/reception',*/ '/Pacientes', '/profesionales', '/admin'] as const;
 
 function normalizeRole(input?: string | null): RoleKey | null {
   if (!input) return null;

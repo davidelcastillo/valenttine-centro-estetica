@@ -73,7 +73,7 @@ export default function LoginPage() {
       setTimeout(() => {
         if (nextPath) return router.replace(nextPath)
         if (data.role === 'RECEPCIONISTA') router.replace('/dashboard')
-        else if (data.role === 'MEDICO')   router.replace('/specialist')
+        else if (data.role === 'MEDICO')   router.replace('/dashboard')
         else                                router.replace('/admin')
       }, 5000)
     } catch {
