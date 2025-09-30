@@ -18,8 +18,8 @@ export function DashboardHeader({ onRegisterClick, onCalendarClick }: DashboardH
         <p className="text-gray-600 text-lg">Sistema de gestión de turnos médicos</p>
       </div>
       <div className="flex space-x-4">
-        <Button onClick={onRegisterClick}>Registrar Turno</Button>
-        <Button variant="secondary" onClick={onCalendarClick}>
+        <Button variant="primary" onClick={onRegisterClick}>Registrar Turno</Button>
+        <Button variant="outline" onClick={onCalendarClick}>
           Ver Calendario
         </Button>
       </div>
