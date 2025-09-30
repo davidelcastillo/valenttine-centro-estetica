@@ -100,7 +100,7 @@ export default function Page() {
       </div>
 
       {/* HU-PRF-05: Tarjetas estado */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 sha">
         <StatCard title="Profesionales Activos" value={stats.activos} color="from-green-500 to-green-300" icon="check" />
         <StatCard title="Profesionales Inactivos" value={stats.inactivos} color="from-gray-400 to-gray-600" icon="minus" />
         <StatCard title="De Vacaciones" value={stats.vacaciones} color="from-blue-400 to-blue-600" icon="sun" />
@@ -108,7 +108,7 @@ export default function Page() {
       </div>
 
       {/* HU-PRF-04: Filtros avanzados */}
-      <div className="glass-effect rounded-2xl p-8 mb-8 card-hover">
+      <div className="glass-effect rounded-2xl p-8 mb-8 card-hover shadow-md">
         <h3 className="text-xl font-semibold text-purple-800 mb-6">Filtros de Búsqueda</h3>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
           {/* DNI */}
@@ -195,7 +195,7 @@ export default function Page() {
               setDni(''); setNombre(''); setMatricula(''); setEspecialidad(''); setProvinciaNombre('');
               refresh();
             }}
-            className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+            className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all cursor-pointer"
           >
             Limpiar Filtros
           </button>
@@ -214,7 +214,7 @@ export default function Page() {
       </div>
 
       {/* Tabla */}
-      <div className="glass-effect rounded-2xl overflow-hidden card-hover">
+      <div className="glass-effect rounded-2xl overflow-hidden card-hover shadow-md">
         <div className="bg-gradient-to-r from-purple-600 to-purple-400 p-6">
           <h3 className="text-xl font-bold text-white">Lista de Profesionales</h3>
         </div>
@@ -279,7 +279,7 @@ export default function Page() {
 
 function StatCard({ title, value, color, icon }: { title: string; value: number; color: string; icon: 'check'|'minus'|'sun'|'doc'}) {
   return (
-    <div className="glass-effect rounded-2xl p-6 card-hover">
+    <div className="glass-effect rounded-2xl p-6 card-hover shadow-md">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-gray-600 text-sm font-medium">{title}</p>
