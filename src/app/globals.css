@@ -18,3 +18,29 @@
   body {
     @apply bg-background text-foreground; } }
 
+/* Borrar si rompe algo */
+/* Colores de marca (usá estas vars con Tailwind vía var(...) ) */
+:root {
+  --primary-pink: oklch(0.77 0.19 70.08);
+  --primary-blue: oklch(0.60 0.12 184.704);
+}
+
+/* Vidrio */
+.glass-effect {
+  /* Si preferís solo Tailwind: @apply bg-white/60 backdrop-blur-md border border-white/30; */
+  background: color-mix(in oklch, white 60%, transparent);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,.3);
+}
+
+/* Animaciones de entrada/salida lateral */
+@keyframes sidebar-in {
+  from { transform: translateX(-100%); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+@keyframes sidebar-out {
+  from { transform: translateX(0);     opacity: 1; }
+  to   { transform: translateX(-100%); opacity: 0; }
+}
+.slide-in  { animation: sidebar-in  300ms ease-out both; }
+.slide-out { animation: sidebar-out 250ms ease-in  both; }
