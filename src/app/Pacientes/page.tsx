@@ -64,7 +64,7 @@ const ESTADOS_CIVILES = [
 ] as const
 
 export default function PatientManagementModule() {
-  const [currentView, setCurrentView] = useState<"list" | "create" | "detail">("list")
+  const [currentView, setCurrentView] = useState<"list" | "create" | "detail" | "edit">("list")
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
   const [showSidebar, setShowSidebar] = useState(false)
   const [patients, setPatients] = useState<Patient[]>([])
@@ -1216,12 +1216,32 @@ export default function PatientManagementModule() {
                       <button 
                         onClick={() => {
                           setSelectedPatient(patient)
-                          setCurrentView("detail")
+                          setNewPatientForm({   // Prellenar formulario con los datos del paciente
+                            fullName: patient.fullName,
+                            lastName: patient.lastName,
+                            dni: patient.dni,
+                            birthDate: patient.birthDate?.split("T")[0] || "", // YYYY-MM-DD
+                            gender: patient.gender,
+                            maritalStatus: patient.maritalStatus,
+                            country: patient.country,
+                            province: patient.provinciaId?.toString() || "",
+                            locality: patient.localidadId?.toString() || "",
+                            neighborhood: patient.neighborhood || "",
+                            street: patient.street,
+                            streetNumber: patient.streetNumber,
+                            phone: patient.phone,
+                            email: patient.email,
+                            healthInsurance: patient.obraSocialId?.toString() || "",
+                            memberNumber: patient.memberNumber,
+                            plan: patient.plan,
+                          })
+                          setCurrentView("edit")
                         }}
                         className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-600 transition-colors"
                       >
                         Editar
                       </button>
+
                     </div>
                   </td>
                 </tr>
