@@ -26,7 +26,7 @@ export function DashboardHeader({ onRegisterClick, onCalendarClick }: DashboardH
           className="px-8 py-8 rounded-xl gap-3 text-lg hover:shadow-lg"
         >
           <Plus className="w-6 h-6" aria-hidden />
-            <span>Nuevo Proveedor</span>
+            <span>Nuevo Turno</span>
         </Button>
         <Button variant="outline" onClick={onCalendarClick}>
           Ver Calendario
