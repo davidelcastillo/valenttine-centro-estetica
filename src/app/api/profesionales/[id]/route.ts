@@ -106,7 +106,7 @@ export async function PUT(
         const me = token ? verifyJwt<JwtUser>(token) : null;
         if (!me)
             return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-        if (me.role !== "RECEPCIONISTA")
+        if (me.role !== "GERENTE")
             return NextResponse.json({ error: "No autorizado" }, { status: 403 });
 
         const raw = await req.json();

@@ -5,7 +5,7 @@ import type { JwtUser } from "@/lib/usuarios/types";
 
 // Qué rutas están protegidas y qué roles pueden pasar
 const ACL: Record<string, Array<JwtUser["role"]>> = {
-  "/pacientes": ["RECEPCIONISTA", "GERENTE"],
+  "/Pacientes": ["RECEPCIONISTA", "GERENTE"],
   "/specialist": ["MEDICO", "GERENTE"],
   "/admin": ["GERENTE"],
   "/turnos": ["RECEPCIONISTA"],
@@ -40,7 +40,7 @@ export default function middleware(req: NextRequest) {
 
   // Chequear permiso por rol
   if (!ACL[base].includes(payload.role)) {
-    return NextResponse.redirect(new URL("/unauthorized", req.url));
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   return NextResponse.next();
@@ -49,8 +49,12 @@ export default function middleware(req: NextRequest) {
 // Según doc: matcher explícito + runtime Node.js para poder usar jsonwebtoken
 export const config = {
   matcher: [
-    "/pacientes",
-    "/pacientes/:path*",
+    "/Pacientes",
+    "/Pacientes/:path*",
+    "/turnos",
+    "/turnos/:path*",
+    "/profesionales",
+    "/profesionales/:path*",
     "/specialist",
     "/specialist/:path*",
     "/admin",
