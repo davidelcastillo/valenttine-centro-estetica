@@ -8,6 +8,8 @@ const ACL: Record<string, Array<JwtUser["role"]>> = {
   "/pacientes": ["RECEPCIONISTA", "GERENTE"],
   "/specialist": ["MEDICO", "GERENTE"],
   "/admin": ["GERENTE"],
+  "/turnos": ["RECEPCIONISTA"],
+  "/profesionales": ["RECEPCIONISTA"],
   "/reception": ["RECEPCIONISTA", "GERENTE"],
   "/dashboard": ["RECEPCIONISTA", "MEDICO", "GERENTE"],
 };
