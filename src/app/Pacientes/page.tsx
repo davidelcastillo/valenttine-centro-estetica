@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { PacienteDTO } from "@/lib/types/pacientes.dto"
 import Link from "next/link";
+import { Toast } from "@/components/ui/toast"
 
 
 interface Patient {
@@ -355,6 +356,11 @@ export default function PatientManagementModule() {
         memberNumber: "",
         plan: "",
       })
+
+      // nuevo cambio -----------------------------------------#############
+      await fetchPatients()
+      setCurrentView("list")
+      window.scrollTo({ top: 0, behavior: "smooth" })
     } catch (err) {
       console.error("Error:", err)
     }
@@ -410,6 +416,10 @@ export default function PatientManagementModule() {
           history: [],
         };
       });
+
+    mapped.sort((a: Patient, b: Patient) => 
+      new Date(b.creadoEn ?? 0).getTime() - new Date(a.creadoEn ?? 0).getTime()
+    )
 
 
       setPatients(mapped)
@@ -1001,11 +1011,20 @@ export default function PatientManagementModule() {
               Cancelar
             </button>
             <button
-              onClick={(e) => handleSubmit(e)}
-              className={`px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all ${isFormValid()
-                ? "bg-purple-600 hover:bg-purple-700 text-white"
-                : "bg-gray-400 text-gray-600 cursor-not-allowed"
-                }`}
+              type="button"
+              onClick={async (e) => {
+                await handleSubmit(e)       // 1. Llama a la lógica de guardado
+                setCurrentView("list")      // 2. Vuelve a la lista cuando termina
+                window.scrollTo({ 
+                  top: 200,                 // ajustar según donde lo queremos ver
+                  behavior: "smooth"        // animación suave
+                })
+              }}
+              className={`px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all ${
+                isFormValid()
+                  ? "bg-purple-600 hover:bg-purple-700 text-white"
+                  : "bg-gray-400 text-gray-600 cursor-not-allowed"
+              }`}
               disabled={!isFormValid()}
             >
               Guardar
