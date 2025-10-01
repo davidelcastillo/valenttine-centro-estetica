@@ -125,28 +125,25 @@ export function PatientSearchModal({
         </div>
 
         {/* Resultados */}
-        {term && (
+        {term && !selected && (
           <div className="border border-gray-200 rounded-lg max-h-48 overflow-y-auto">
             {loading && <div className="p-3 text-sm text-gray-500">Buscando…</div>}
             {!loading && results.length === 0 && (
               <div className="p-3 text-sm text-gray-500">Sin resultados</div>
             )}
-            {!loading &&
-              results.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => {
-                    setSelected(p)
-                    setTerm(`${p.nombre} ${p.apellido}`)
-                  }}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-                >
-                  <div className="font-medium text-gray-900">
-                    {p.nombre} {p.apellido}
-                  </div>
-                  <div className="text-xs text-gray-500">DNI: {p.dni} · {p.email}</div>
-                </button>
-              ))}
+            {!loading && results.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => {
+                  setSelected(p)
+                  setTerm(`${p.nombre} ${p.apellido}`) // o setTerm('')
+                }}
+                className="w-full text-left px-3 py-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+              >
+                <div className="font-medium text-gray-900">{p.nombre} {p.apellido}</div>
+                <div className="text-xs text-gray-500">DNI: {p.dni} · {p.email}</div>
+              </button>
+            ))}
           </div>
         )}
 

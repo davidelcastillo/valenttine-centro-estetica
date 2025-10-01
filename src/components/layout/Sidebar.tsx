@@ -12,7 +12,7 @@ const ACL: Record<string, RoleKey[]> = {
   '/Pacientes':  ['RECEPCIONISTA', 'GERENTE'],
   '/profesionales': ['RECEPCIONISTA', 'GERENTE'],
   '/admin':      ['GERENTE'],
-  '/turnos': ["RECEPCIONISTA"],
+  '/turnos': ["RECEPCIONISTA", 'GERENTE'],
   //'/reception':  ['RECEPCIONISTA', 'GERENTE'], TODAVIA NO EXISTE
   '/dashboard':  ['RECEPCIONISTA', 'MEDICO', 'GERENTE'],
 } as const;
