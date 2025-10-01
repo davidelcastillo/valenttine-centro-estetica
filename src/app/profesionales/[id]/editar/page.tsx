@@ -179,7 +179,7 @@ export default function EditProfesionalPage() {
                 setLocalidades(locs);
 
                 // --- construir horario con los 7 días (habilitar si estaba en BD) --- //
-                const weekDays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'] as const;
+                const weekDays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'] as const;
                 const incoming = Array.isArray(detalle.horarioTrabajo) ? detalle.horarioTrabajo : [];
                 const byDay = new Map<string, { start: string; end: string }>();
                 for (const h of incoming) {
@@ -565,10 +565,6 @@ export default function EditProfesionalPage() {
                             <label className="block text-sm text-gray-600 mb-1">Fecha de Graduación (DD/MM/AAAA) *</label>
                             <input className="w-full border rounded-xl px-3 py-2" value={form.fechaGraduacion} onChange={e => set('fechaGraduacion', e.target.value)} />
                             {errors.fechaGraduacion && <p className="text-xs text-red-600 mt-1">{errors.fechaGraduacion}</p>}
-                        </div>
-                        <div>
-                            <label className="block text-sm text-gray-600 mb-1">Certificaciones Adicionales</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.certificaciones} onChange={e => set('certificaciones', e.target.value)} />
                         </div>
                     </div>
                 </section>

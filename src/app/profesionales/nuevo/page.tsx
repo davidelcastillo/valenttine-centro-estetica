@@ -152,6 +152,16 @@ export default function NuevoProfesionalPage() {
     const [saving, setSaving] = useState(false);
     const [serverMsg, setServerMsg] = useState<string | null>(null);
 
+    //para la validaciones
+    const [touched, setTouched] = useState<Record<keyof Errors, boolean>>({} as any);
+    const [submitTried, setSubmitTried] = useState(false);
+    
+    const touch = (k: keyof Errors) =>
+        setTouched(t => ({ ...t, [k]: true }));
+
+    const show = (k: keyof Errors) =>
+        (submitTried || touched[k]) && !!errors[k];
+    
     // Carga inicial de catálogos + estado base (con 7 días)
     useEffect(() => {
         (async () => {
@@ -163,7 +173,7 @@ export default function NuevoProfesionalPage() {
                 setObras(init.obrasSociales);
 
                 // horario con los 7 días
-                const weekDays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'] as const;
+                const weekDays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'] as const;
                 const horario = weekDays.map(day => ({
                     day,
                     enabled: false,
@@ -337,6 +347,7 @@ export default function NuevoProfesionalPage() {
 
     const handleSubmit = async (ev: React.FormEvent) => {
         ev.preventDefault();
+        setSubmitTried(true);
         if (!form) return;
         const val = validateAll();
         setErrors(val);
@@ -433,42 +444,76 @@ export default function NuevoProfesionalPage() {
                         {/* Nombre */}
                         <div>
                             <label className="block text-sm text-gray-600 mb-1">Nombre Completo *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.nombre} onChange={e => set('nombre', e.target.value)} />
-                            {errors.nombre && <p className="text-xs text-red-600 mt-1">{errors.nombre}</p>}
+                            <input
+                                className="w-full border rounded-xl px-3 py-2"
+                                value={form.nombre}
+                                onChange={e => set('nombre', e.target.value)}
+                                onBlur={() => touch('nombre')}
+                            />
+                            {show('nombre') && <p className="text-xs text-red-600 mt-1">{errors.nombre}</p>}
                         </div>
                         {/* Apellido */}
                         <div>
                             <label className="block text-sm text-gray-600 mb-1">Apellido Completo *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.apellido} onChange={e => set('apellido', e.target.value)} />
-                            {errors.apellido && <p className="text-xs text-red-600 mt-1">{errors.apellido}</p>}
+                            <input 
+                                className="w-full border rounded-xl px-3 py-2" 
+                                value={form.apellido} 
+                                onChange={e => set('apellido', e.target.value)} 
+                                onBlur={() => touch('apellido')}
+                            />
+                            {show('apellido') && <p  className="text-xs text-red-600 mt-1">{errors.apellido}</p>}
+                            {/*errors.apellido && <p className="text-xs text-red-600 mt-1">{errors.apellido}</p>*/}
                         </div>
                         {/* DNI */}
                         <div>
                             <label className="block text-sm text-gray-600 mb-1">DNI *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.dni} onChange={e => set('dni', e.target.value.replace(/\D/g, '').slice(0, 8))} placeholder="8 dígitos" />
-                            {errors.dni && <p className="text-xs text-red-600 mt-1">{errors.dni}</p>}
+                            <input 
+                                className="w-full border rounded-xl px-3 py-2"
+                                value={form.dni} 
+                                onChange={e => set('dni', e.target.value.replace(/\D/g, '').slice(0, 8))} 
+                                onBlur={() => touch('dni')}
+                                placeholder="8 dígitos" 
+                            />
+                            {show('dni') && <p className="text-xs text-red-600 mt-1">{errors.dni}</p>}
                         </div>
                         {/* Fecha Nacimiento */}
                         <div>
                             <label className="block text-sm text-gray-600 mb-1">Fecha de Nacimiento (DD/MM/AAAA) *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.fechaNacimiento} onChange={e => set('fechaNacimiento', e.target.value)} placeholder="DD/MM/AAAA" />
-                            {errors.fechaNacimiento && <p className="text-xs text-red-600 mt-1">{errors.fechaNacimiento}</p>}
+                            <input 
+                                className="w-full border rounded-xl px-3 py-2" 
+                                value={form.fechaNacimiento} 
+                                onChange={e => set('fechaNacimiento', e.target.value)} 
+                                onBlur={() => touch('fechaNacimiento')}
+                                placeholder="DD/MM/AAAA" 
+                            />
+                            {show('fechaNacimiento') && <p className="text-xs text-red-600 mt-1">{errors.fechaNacimiento}</p>}
                         </div>
                         {/* Género */}
                         <div>
-                            <label className="block text-sm text-gray-600 mb-1">Género *</label>
-                            <select className="w-full border rounded-xl px-3 py-2" value={form.genero} onChange={e => set('genero', e.target.value as FormState['genero'])}>
-                                <option value="">Seleccionar…</option>
-                                <option value="FEMENINO">Femenino</option>
-                                <option value="MASCULINO">Masculino</option>
-                                <option value="OTRO">Otro</option>
-                            </select>
-                            {errors.genero && <p className="text-xs text-red-600 mt-1">{errors.genero}</p>}
+                        <label className="block text-sm text-gray-600 mb-1">Género *</label>
+                        <select
+                            className="w-full border rounded-xl px-3 py-2"
+                            value={form.genero}
+                            onChange={e => set('genero', e.target.value as FormState['genero'])}
+                            onBlur={() => touch('genero')}
+                        >
+                            <option value="">Seleccionar…</option>
+                            <option value="FEMENINO">Femenino</option>
+                            <option value="MASCULINO">Masculino</option>
+                            <option value="OTRO">Otro</option>
+                        </select>
+                        {show('genero') && <p className="text-xs text-red-600 mt-1">{errors.genero}</p>}
                         </div>
+
                         {/* Estado Civil */}
                         <div>
                             <label className="block text-sm text-gray-600 mb-1">Estado Civil *</label>
-                            <select className="w-full border rounded-xl px-3 py-2" value={form.estadoCivil} onChange={e => set('estadoCivil', e.target.value as FormState['estadoCivil'])}>
+                            <select
+                                className="w-full border rounded-xl px-3 py-2"
+                                value={form.estadoCivil}
+                                onChange={e => set('estadoCivil', e.target.value as FormState['estadoCivil'])}
+                                onBlur={() => touch('estadoCivil')}
+                            >
                                 <option value="">Seleccionar…</option>
                                 <option value="SOLTERO">Soltero/a</option>
                                 <option value="CASADO">Casado/a</option>
@@ -476,243 +521,345 @@ export default function NuevoProfesionalPage() {
                                 <option value="VIUDO">Viudo/a</option>
                                 <option value="UNION_LIBRE">Unión Libre / Convivencia</option>
                             </select>
-                            {errors.estadoCivil && <p className="text-xs text-red-600 mt-1">{errors.estadoCivil}</p>}
+                            {show('estadoCivil') && <p className="text-xs text-red-600 mt-1">{errors.estadoCivil}</p>}
                         </div>
                     </div>
                 </section>
 
                 {/* CONTACTO */}
                 <section className="bg-white/70 backdrop-blur rounded-2xl shadow p-5">
-                    <h2 className="text-violet-700 font-semibold mb-4">Datos de Contacto</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* País */}
-                        <div>
-                            <label className="block text-sm text-gray-600 mb-1">País *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.pais} onChange={e => set('pais', e.target.value)} />
-                            {errors.pais && <p className="text-xs text-red-600 mt-1">{errors.pais}</p>}
-                        </div>
-                        {/* Provincia */}
-                        <div>
-                            <label className="block text-sm text-gray-600 mb-1">Provincia *</label>
-                            <select className="w-full border rounded-xl px-3 py-2" value={form.provinciaId} onChange={e => set('provinciaId', e.target.value)}>
-                                <option value="">Seleccionar…</option>
-                                {provincias.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
-                            </select>
-                            {errors.provinciaId && <p className="text-xs text-red-600 mt-1">{errors.provinciaId}</p>}
-                        </div>
-                        {/* Localidad */}
-                        <div>
-                            <label className="block text-sm text-gray-600 mb-1">Localidad *</label>
-                            <select className="w-full border rounded-xl px-3 py-2" value={form.localidadId} onChange={e => set('localidadId', e.target.value)} disabled={!form.provinciaId}>
-                                <option value="">{form.provinciaId ? 'Seleccionar…' : 'Selecciona provincia'}</option>
-                                {localidades.map(l => <option key={l.id} value={l.id}>{l.nombre}</option>)}
-                            </select>
-                            {errors.localidadId && <p className="text-xs text-red-600 mt-1">{errors.localidadId}</p>}
-                        </div>
+                <h2 className="text-violet-700 font-semibold mb-4">Datos de Contacto</h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* País */}
+                    <div>
+                    <label className="block text-sm text-gray-600 mb-1">País *</label>
+                    <input
+                        className="w-full border rounded-xl px-3 py-2"
+                        value={form.pais}
+                        onChange={e => set('pais', e.target.value)}
+                        onBlur={() => touch('pais')}
+                    />
+                    {show('pais') && <p className="text-xs text-red-600 mt-1">{errors.pais}</p>}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-                        {/* Barrio */}
-                        <div>
-                            <label className="block text-sm text-gray-600 mb-1">Barrio</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.barrio} onChange={e => set('barrio', e.target.value)} />
-                            {errors.barrio && <p className="text-xs text-red-600 mt-1">{errors.barrio}</p>}
-                        </div>
-                        {/* Calle */}
-                        <div>
-                            <label className="block text-sm text-gray-600 mb-1">Calle *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.calle} onChange={e => set('calle', e.target.value)} />
-                            {errors.calle && <p className="text-xs text-red-600 mt-1">{errors.calle}</p>}
-                        </div>
-                        {/* Número */}
-                        <div>
-                            <label className="block text-sm text-gray-600 mb-1">Número *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.numero} onChange={e => set('numero', e.target.value.replace(/\D/g, ''))} />
-                            {errors.numero && <p className="text-xs text-red-600 mt-1">{errors.numero}</p>}
-                        </div>
-                        {/* Celular */}
-                        <div>
-                            <label className="block text-sm text-gray-600 mb-1">Número de Celular (+54) *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.celular} onChange={e => set('celular', e.target.value)} placeholder="(XXX)XXXXXX o similar" />
-                            {telPreview
-                                ? <p className="text-xs text-green-600 mt-1">Número válido: {telPreview}</p>
-                                : (errors._celular && <p className="text-xs text-red-600 mt-1">Número inválido, revise el formato</p>)
-                            }
-                        </div>
+                    {/* Provincia */}
+                    <div>
+                    <label className="block text-sm text-gray-600 mb-1">Provincia *</label>
+                    <select
+                        className="w-full border rounded-xl px-3 py-2"
+                        value={form.provinciaId}
+                        onChange={e => set('provinciaId', e.target.value)}
+                        onBlur={() => touch('provinciaId')}
+                    >
+                        <option value="">Seleccionar…</option>
+                        {provincias.map(p => (
+                        <option key={p.id} value={p.id}>{p.nombre}</option>
+                        ))}
+                    </select>
+                    {show('provinciaId') && <p className="text-xs text-red-600 mt-1">{errors.provinciaId}</p>}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        {/* Email */}
-                        <div>
-                            <label className="block text-sm text-gray-600 mb-1">Correo Electrónico *</label>
-                            <input
-                                type="email"
-                                className="w-full border rounded-xl px-3 py-2"
-                                value={form.email}
-                                onChange={(e) => {
-                                    const v = e.target.value;
-                                    set('email', v);          // contacto
-                                    set('userEmail', v);      // usuario médico
-                                    const uname = v.split('@')[0]
-                                        .replace(/[^A-Za-z0-9_]/g, '')
-                                        .slice(0, 11);
-                                    set('username', uname);   // usuario autogenerado (máx 11, sin espacios)
-                                }}
-                            />
-                            {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
-                        </div>
+                    {/* Localidad */}
+                    <div>
+                    <label className="block text-sm text-gray-600 mb-1">Localidad *</label>
+                    <select
+                        className="w-full border rounded-xl px-3 py-2"
+                        value={form.localidadId}
+                        onChange={e => set('localidadId', e.target.value)}
+                        onBlur={() => touch('localidadId')}
+                        disabled={!form.provinciaId}
+                    >
+                        <option value="">{form.provinciaId ? 'Seleccionar…' : 'Selecciona provincia'}</option>
+                        {localidades.map(l => (
+                        <option key={l.id} value={l.id}>{l.nombre}</option>
+                        ))}
+                    </select>
+                    {show('localidadId') && <p className="text-xs text-red-600 mt-1">{errors.localidadId}</p>}
                     </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+                    {/* Barrio */}
+                    <div>
+                    <label className="block text-sm text-gray-600 mb-1">Barrio</label>
+                    <input
+                        className="w-full border rounded-xl px-3 py-2"
+                        value={form.barrio}
+                        onChange={e => set('barrio', e.target.value)}
+                        onBlur={() => touch('barrio')}
+                    />
+                    {show('barrio') && <p className="text-xs text-red-600 mt-1">{errors.barrio}</p>}
+                    </div>
+
+                    {/* Calle */}
+                    <div>
+                    <label className="block text-sm text-gray-600 mb-1">Calle *</label>
+                    <input
+                        className="w-full border rounded-xl px-3 py-2"
+                        value={form.calle}
+                        onChange={e => set('calle', e.target.value)}
+                        onBlur={() => touch('calle')}
+                    />
+                    {show('calle') && <p className="text-xs text-red-600 mt-1">{errors.calle}</p>}
+                    </div>
+
+                    {/* Número */}
+                    <div>
+                    <label className="block text-sm text-gray-600 mb-1">Número *</label>
+                    <input
+                        className="w-full border rounded-xl px-3 py-2"
+                        value={form.numero}
+                        onChange={e => set('numero', e.target.value.replace(/\D/g, ''))}
+                        onBlur={() => touch('numero')}
+                    />
+                    {show('numero') && <p className="text-xs text-red-600 mt-1">{errors.numero}</p>}
+                    </div>
+
+                    {/* Celular */}
+                    <div>
+                    <label className="block text-sm text-gray-600 mb-1">Número de Celular (+54) *</label>
+                    <input
+                        className="w-full border rounded-xl px-3 py-2"
+                        value={form.celular}
+                        onChange={e => set('celular', e.target.value)}
+                        onBlur={() => touch('_celular')}
+                        placeholder="(XXX)XXXXXX o similar"
+                    />
+                    {telPreview
+                        ? <p className="text-xs text-green-600 mt-1">Número válido: {telPreview}</p>
+                        : (show('_celular') && <p className="text-xs text-red-600 mt-1">Número inválido, revise el formato</p>)
+                    }
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    {/* Email */}
+                    <div>
+                    <label className="block text-sm text-gray-600 mb-1">Correo Electrónico *</label>
+                    <input
+                        type="email"
+                        className="w-full border rounded-xl px-3 py-2"
+                        value={form.email}
+                        onChange={(e) => {
+                        const v = e.target.value;
+                        set('email', v);          // contacto
+                        set('userEmail', v);      // usuario médico
+                        const uname = v.split('@')[0]
+                            .replace(/[^A-Za-z0-9_]/g, '')
+                            .slice(0, 11);
+                        set('username', uname);   // autogenerado (máx 11, sin espacios)
+                        }}
+                        onBlur={() => touch('email')}
+                    />
+                    {show('email') && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
+                    </div>
+                </div>
                 </section>
 
                 {/* DATOS PROFESIONALES */}
                 <section className="bg-white/70 backdrop-blur rounded-2xl shadow p-5">
                     <h2 className="text-violet-700 font-semibold mb-4">Datos Profesionales</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Título Profesional */}
                         <div>
-                            <label className="block text-sm text-gray-600 mb-1">Título Profesional *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.titulo} onChange={e => set('titulo', e.target.value)} />
-                            {errors.titulo && <p className="text-xs text-red-600 mt-1">{errors.titulo}</p>}
+                        <label className="block text-sm text-gray-600 mb-1">Título Profesional *</label>
+                        <input
+                            className="w-full border rounded-xl px-3 py-2"
+                            value={form.titulo}
+                            onChange={e => set('titulo', e.target.value)}
+                            onBlur={() => touch('titulo')}
+                        />
+                        {show('titulo') && <p className="text-xs text-red-600 mt-1">{errors.titulo}</p>}
                         </div>
+
+                        {/* Número de Matrícula */}
                         <div>
-                            <label className="block text-sm text-gray-600 mb-1">Número de Matrícula *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.matricula} onChange={e => set('matricula', e.target.value.replace(/\D/g, ''))} />
-                            {errors.matricula && <p className="text-xs text-red-600 mt-1">{errors.matricula}</p>}
+                        <label className="block text-sm text-gray-600 mb-1">Número de Matrícula *</label>
+                        <input
+                            className="w-full border rounded-xl px-3 py-2"
+                            value={form.matricula}
+                            onChange={e => set('matricula', e.target.value.replace(/\D/g, ''))}
+                            onBlur={() => touch('matricula')}
+                        />
+                        {show('matricula') && <p className="text-xs text-red-600 mt-1">{errors.matricula}</p>}
                         </div>
+
+                        {/* Especialidad */}
                         <div>
-                            <label className="block text-sm text-gray-600 mb-1">Especialidad *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.especialidad} onChange={e => set('especialidad', e.target.value)} />
-                            {errors.especialidad && <p className="text-xs text-red-600 mt-1">{errors.especialidad}</p>}
+                        <label className="block text-sm text-gray-600 mb-1">Especialidad *</label>
+                        <input
+                            className="w-full border rounded-xl px-3 py-2"
+                            value={form.especialidad}
+                            onChange={e => set('especialidad', e.target.value)}
+                            onBlur={() => touch('especialidad')}
+                        />
+                        {show('especialidad') && <p className="text-xs text-red-600 mt-1">{errors.especialidad}</p>}
                         </div>
+
+                        {/* Universidad de Egreso */}
                         <div>
-                            <label className="block text-sm text-gray-600 mb-1">Universidad de Egreso *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.universidad} onChange={e => set('universidad', e.target.value)} />
-                            {errors.universidad && <p className="text-xs text-red-600 mt-1">{errors.universidad}</p>}
+                        <label className="block text-sm text-gray-600 mb-1">Universidad de Egreso *</label>
+                        <input
+                            className="w-full border rounded-xl px-3 py-2"
+                            value={form.universidad}
+                            onChange={e => set('universidad', e.target.value)}
+                            onBlur={() => touch('universidad')}
+                        />
+                        {show('universidad') && <p className="text-xs text-red-600 mt-1">{errors.universidad}</p>}
                         </div>
+
+                        {/* Fecha de Graduación */}
                         <div>
-                            <label className="block text-sm text-gray-600 mb-1">Fecha de Graduación (DD/MM/AAAA) *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.fechaGraduacion} onChange={e => set('fechaGraduacion', e.target.value)} placeholder="DD/MM/AAAA" />
-                            {errors.fechaGraduacion && <p className="text-xs text-red-600 mt-1">{errors.fechaGraduacion}</p>}
+                        <label className="block text-sm text-gray-600 mb-1">Fecha de Graduación (DD/MM/AAAA) *</label>
+                        <input
+                            className="w-full border rounded-xl px-3 py-2"
+                            value={form.fechaGraduacion}
+                            onChange={e => set('fechaGraduacion', e.target.value)}
+                            onBlur={() => touch('fechaGraduacion')}
+                            placeholder="DD/MM/AAAA"
+                        />
+                        {show('fechaGraduacion') && <p className="text-xs text-red-600 mt-1">{errors.fechaGraduacion}</p>}
                         </div>
-                        <div>
-                            <label className="block text-sm text-gray-600 mb-1">Certificaciones Adicionales</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.certificaciones} onChange={e => set('certificaciones', e.target.value)} />
-                        </div>
+
                     </div>
                 </section>
+
 
                 {/* DATOS LABORALES */}
                 <section className="bg-white/70 backdrop-blur rounded-2xl shadow p-5">
                     <h2 className="text-violet-700 font-semibold mb-4">Datos Laborales</h2>
 
+                    {/* Obra Social */}
                     <div className="mb-4">
                         <label className="block text-sm text-gray-600 mb-1">Obra Social que recibe *</label>
-                        <select className="w-full md:w-1/2 border rounded-xl px-3 py-2" value={form.obraSocialId} onChange={e => set('obraSocialId', e.target.value)}>
-                            <option value="">Seleccionar…</option>
-                            {obras.map(o => <option key={o.id} value={o.id}>{o.nombre}</option>)}
+                        <select
+                        className="w-full md:w-1/2 border rounded-xl px-3 py-2"
+                        value={form.obraSocialId}
+                        onChange={e => { set('obraSocialId', e.target.value); }}
+                        onBlur={() => touch('_obra')}
+                        >
+                        <option value="">Seleccionar…</option>
+                        {obras.map(o => (
+                            <option key={o.id} value={o.id}>{o.nombre}</option>
+                        ))}
                         </select>
-                        {errors._obra && <p className="text-xs text-red-600 mt-1">{errors._obra}</p>}
+                        {show('_obra') && <p className="text-xs text-red-600 mt-1">{errors._obra}</p>}
                     </div>
 
+                    {/* Prestaciones */}
                     <div className="mb-4">
                         <label className="block text-sm text-gray-600 mb-2">Servicios de Prestación *</label>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                            {prestaciones.map(p => (
-                                <label key={p.id} className="flex items-center gap-2 border rounded-xl px-3 py-2 hover:bg-gray-50">
-                                    <input type="checkbox" checked={form.prestacionIds.includes(p.id)} onChange={() => togglePrestacion(p.id)} />
-                                    <span>{p.nombre}</span>
-                                </label>
-                            ))}
+                        <div
+                        className="grid grid-cols-1 md:grid-cols-3 gap-2"
+                        // por si navega con teclado y sale del contenedor
+                        onBlur={() => touch('_prestaciones')}
+                        >
+                        {prestaciones.map(p => (
+                            <label key={p.id} className="flex items-center gap-2 border rounded-xl px-3 py-2 hover:bg-gray-50">
+                            <input
+                                type="checkbox"
+                                checked={form.prestacionIds.includes(p.id)}
+                                onChange={() => {
+                                togglePrestacion(p.id);
+                                touch('_prestaciones');
+                                }}
+                            />
+                            <span>{p.nombre}</span>
+                            </label>
+                        ))}
                         </div>
-                        {errors._prestaciones && <p className="text-xs text-red-600 mt-1">{errors._prestaciones}</p>}
+                        {show('_prestaciones') && <p className="text-xs text-red-600 mt-1">{errors._prestaciones}</p>}
                     </div>
 
+                    {/* Horario de Trabajo */}
                     <div>
                         <label className="block text-sm text-gray-600 mb-2">Horario de Trabajo *</label>
                         <div className="space-y-2">
-                            {form.horario.map((h, i) => (
-                                <div key={h.day} className="flex items-center gap-3 border rounded-xl px-3 py-2">
-                                    <label className="flex items-center gap-2 w-40">
-                                        <input type="checkbox" checked={h.enabled} onChange={e => toggleDia(i, e.target.checked)} />
-                                        <span className="font-medium">{h.day}</span>
-                                    </label>
-                                    <div className="flex items-center gap-2">
-                                        <TimeField
-                                            aria-label="Hora inicio"
-                                            value={h.start}
-                                            onChange={(v) => setHora(i, "start", v)}
-                                            disabled={!h.enabled}
-                                        />
-                                        <span>—</span>
-                                        <TimeField
-                                            aria-label="Hora fin"
-                                            value={h.end}
-                                            onChange={(v) => setHora(i, "end", v)}
-                                            disabled={!h.enabled}
-                                        />
+                        {form.horario.map((h, i) => (
+                            <div key={h.day} className="flex items-center gap-3 border rounded-xl px-3 py-2">
+                            <label className="flex items-center gap-2 w-40">
+                                <input
+                                type="checkbox"
+                                checked={h.enabled}
+                                onChange={e => { toggleDia(i, e.target.checked); touch('_horario'); }}
+                                />
+                                <span className="font-medium">{h.day}</span>
+                            </label>
 
-                                    </div>
-                                </div>
-                            ))}
+                            <div className="flex items-center gap-2">
+                                <TimeField
+                                aria-label="Hora inicio"
+                                value={h.start}
+                                onChange={(v) => { setHora(i, 'start', v); touch('_horario'); }}
+                                disabled={!h.enabled}
+                                />
+                                <span>—</span>
+                                <TimeField
+                                aria-label="Hora fin"
+                                value={h.end}
+                                onChange={(v) => { setHora(i, 'end', v); touch('_horario'); }}
+                                disabled={!h.enabled}
+                                />
+                            </div>
+                            </div>
+                        ))}
                         </div>
-                        {errors._horario && <p className="text-xs text-red-600 mt-2">{errors._horario}</p>}
+                        {show('_horario') && <p className="text-xs text-red-600 mt-2">{errors._horario}</p>}
                     </div>
                 </section>
 
                 {/* USUARIO MÉDICO (opcional) */}
                 <section className="bg-white/70 backdrop-blur rounded-2xl shadow p-5">
                     <h3 className="text-violet-700 font-semibold mb-3">Usuario médico</h3>
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Usuario */}
                         <div>
-                            <label className="block text-sm text-gray-600 mb-1">Usuario *</label>
-                            <input
-                                className="w-full border rounded-xl px-3 py-2 bg-gray-50"
-                                value={form.username}
-                                readOnly
-                                title="Se genera automáticamente desde el email"
-                            />
-                            {errors.username && <p className="text-xs text-red-600 mt-1">{errors.username}</p>}
+                        <label className="block text-sm text-gray-600 mb-1">Usuario *</label>
+                        <input
+                            className="w-full border rounded-xl px-3 py-2 bg-gray-50"
+                            value={form.username}
+                            readOnly
+                            title="Se genera automáticamente desde el email"
+                            onBlur={() => touch('username')}
+                        />
+                        {show('username') && <p className="text-xs text-red-600 mt-1">{errors.username}</p>}
                         </div>
+
+                        {/* Email (usuario médico) */}
                         <div>
-                            <label className="block text-sm text-gray-600 mb-1">Email *</label>
-                            <input
-                                className="w-full border rounded-xl px-3 py-2"
-                                value={form.userEmail}
-                                onChange={(e) => {
-                                    const v = e.target.value;
-                                    set('userEmail', v);
-                                    set('email', v); // si querés que siempre estén en sync
-                                    const uname = v.split('@')[0].replace(/[^A-Za-z0-9_]/g, '').slice(0, 11);
-                                    set('username', uname);
-                                }}
-                            />
-                            {errors.userEmail && <p className="text-xs text-red-600 mt-1">{errors.userEmail}</p>}
+                        <label className="block text-sm text-gray-600 mb-1">Email *</label>
+                        <input
+                            className="w-full border rounded-xl px-3 py-2"
+                            value={form.userEmail}
+                            onChange={(e) => {
+                            const v = e.target.value;
+                            set('userEmail', v);
+                            set('email', v); // si querés mantenerlos sincronizados
+                            const uname = v.split('@')[0].replace(/[^A-Za-z0-9_]/g, '').slice(0, 11);
+                            set('username', uname);
+                            }}
+                            onBlur={() => touch('userEmail')}
+                        />
+                        {show('userEmail') && <p className="text-xs text-red-600 mt-1">{errors.userEmail}</p>}
                         </div>
+
+                        {/* Contraseña */}
                         <div>
-                            <label className="block text-sm text-gray-600 mb-1">Contraseña *</label>
-                            <input
-                                className="w-full border rounded-xl px-3 py-2"
-                                type="password"
-                                value={form.password}
-                                onChange={(e) => set('password', e.target.value)}
-                                placeholder="mínimo 6 caracteres"
-                            />
-                            {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password}</p>}
+                        <label className="block text-sm text-gray-600 mb-1">Contraseña *</label>
+                        <input
+                            className="w-full border rounded-xl px-3 py-2"
+                            type="password"
+                            value={form.password}
+                            onChange={(e) => set('password', e.target.value)}
+                            onBlur={() => touch('password')}
+                            placeholder="mínimo 6 caracteres"
+                        />
+                        {show('password') && <p className="text-xs text-red-600 mt-1">{errors.password}</p>}
                         </div>
                     </div>
                 </section>
-
-
-                {/* RESUMEN DE ERRORES (opcional) */}
-                {form && Object.keys(errors).length > 0 && (
-                    <div className="mb-3 rounded-xl bg-yellow-50 border border-yellow-200 px-4 py-3 text-sm text-yellow-800">
-                        <p className="font-medium mb-1">Revisá estos puntos antes de guardar:</p>
-                        <ul className="list-disc ml-5 space-y-1">
-                            {Object.entries(errors).map(([k, v]) => v && (
-                                <li key={k}>{v}</li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
 
                 {/* FOOTER */}
                 <div className="flex items-center justify-end gap-3">

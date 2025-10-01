@@ -81,6 +81,8 @@ export default function Page() {
   }, []);
 
   return (
+    //<main className="container mx-auto">
+    <main className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-100 p-8">
     <div className="screen-transition">
       {/* Breadcrumb */}
       <div className="flex items-center space-x-2 text-sm text-gray-600 mb-6">
@@ -311,7 +313,7 @@ export default function Page() {
         </button>
       </div>
     </div>
-  );
+  </main>);
 }
 
 function StatCard({ title, value, color, icon }: { title: string; value: number; color: string; icon: 'check'|'minus'|'sun'|'doc'}) {

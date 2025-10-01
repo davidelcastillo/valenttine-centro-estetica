@@ -149,7 +149,7 @@ export default function Page({ params }: { params: { id: string } }) {
             <Col>
               <Item label="Universidad de Egreso" value={prof.universidad} />
               <Item label="Fecha de Graduación" value={fmtDMY(prof.fechaGraduacion)} />
-              <Item label="Certificaciones Adicionales" value={prof.certificaciones || '-'} />
+              {/*<Item label="Certificaciones Adicionales" value={prof.certificaciones || '-'} />*/}
             </Col>
             <Col>
               <label className="text-sm font-medium text-gray-600">Obras Sociales que recibe</label>
