@@ -176,6 +176,9 @@ export const ProfesionalDetalleDto = z.object({
   horarioTrabajo: z.array(HorarioItemDto).default([]),
   // Historial
   movimientos: z.array(MovimientoDto).default([]),
+  // --- NUEVOS CAMPOS ---
+  creadoEn: z.string(),
+  actualizadoEn: z.string(),
 });
 
 export type ProfesionalDetalle = z.infer<typeof ProfesionalDetalleDto>;

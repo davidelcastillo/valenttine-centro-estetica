@@ -26,9 +26,11 @@ interface Patient {
   plan?: string
   status: "Activo" | "Inactivo" | "Suspendido"
   registeredBy?: string
+  creadoEn?: string
+  actualizadoEn?: string
   history?: HistoryEvent[]
 }
-
+// CAMBIO : AGREGO createdAt y updatedAt -------------------------------------------------------------######################################
 interface HistoryEvent {
   date: string
   action: string
@@ -129,6 +131,8 @@ export default function PatientManagementModule() {
           plan: p.plan,
           status: estadoBonito,
           registeredBy: p.creadoPor?.username ?? "Sistema",
+          creadoEn: p.creadoEn,  
+          actualizadoEn: p.actualizadoEn, 
           history: [],
         }
       })
@@ -401,6 +405,8 @@ export default function PatientManagementModule() {
           plan: p.plan,
           status: estadoBonito,
           registeredBy: p.creadoPor?.username ?? "Sistema",
+          creadoEn: p.creadoEn,
+          actualizadoEn: p.actualizadoEn,
           history: [],
         };
       });
@@ -1280,7 +1286,7 @@ export default function PatientManagementModule() {
           <div className="flex space-x-4">
             <button
               onClick={() => setCurrentView("list")}
-              className="bg-gradient-to-r from-gray-400 to-gray-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all font-semibold"
+              className="bg-gradient-to-r from-gray-400 to-gray-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all font-semibold cursor-pointer"
             >
               Volver
             </button>
@@ -1289,7 +1295,7 @@ export default function PatientManagementModule() {
 
         {/* Patient Details */}
         <div className="space-y-8">
-          <div className="glass-effect rounded-2xl p-8 bg-white/95 backdrop-blur-sm border border-white/20">
+          <div className="glass-effect rounded-2xl p-8 bg-white/95 backdrop-blur-sm border border-white/20 shadow-md">
             <h3 className="text-2xl font-bold text-purple-800 mb-6">Información del Paciente</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
@@ -1350,7 +1356,7 @@ export default function PatientManagementModule() {
             </div>
           </div>
 
-          <div className="glass-effect rounded-2xl p-8 bg-white/95 backdrop-blur-sm border border-white/20">
+          <div className="glass-effect rounded-2xl p-8 bg-white/95 backdrop-blur-sm border border-white/20 shadow-md">
             <h3 className="text-2xl font-bold text-purple-800 mb-6">Dirección</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
@@ -1382,13 +1388,31 @@ export default function PatientManagementModule() {
             </div>
           </div>
 
-          <div className="glass-effect rounded-2xl p-8 bg-white/95 backdrop-blur-sm border border-white/20">
+          <div className="glass-effect rounded-2xl p-8 bg-white/95 backdrop-blur-sm border border-white/20 shadow-md">
             <h3 className="text-2xl font-bold text-purple-800 mb-6">Historial de Movimientos</h3>
             <div className="space-y-4">
-              {/* TODO: Implementar historial */}
-              <p className="text-gray-500">No hay movimientos registrados</p>
+              <p className="text-gray-700">
+                <strong>Creado el:</strong>{" "}
+                {selectedPatient.creadoEn
+                  ? new Date(selectedPatient.creadoEn).toLocaleString("es-AR", {
+                      dateStyle: "short",
+                      timeStyle: "short",
+                    })
+                  : "-"}
+              </p>
+              <p className="text-gray-700">
+                <strong>Última actualización:</strong>{" "}
+                {selectedPatient.actualizadoEn
+                  ? new Date(selectedPatient.actualizadoEn).toLocaleString("es-AR", {
+                      dateStyle: "short",
+                      timeStyle: "short",
+                    })
+                  : "-"}
+              </p>
             </div>
           </div>
+
+
         </div>
       </div>
     )
