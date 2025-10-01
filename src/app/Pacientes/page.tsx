@@ -26,9 +26,11 @@ interface Patient {
   plan?: string
   status: "Activo" | "Inactivo" | "Suspendido"
   registeredBy?: string
+  creadoEn?: string
+  actualizadoEn?: string
   history?: HistoryEvent[]
 }
-
+// CAMBIO : AGREGO createdAt y updatedAt -------------------------------------------------------------######################################
 interface HistoryEvent {
   date: string
   action: string
@@ -129,6 +131,8 @@ export default function PatientManagementModule() {
           plan: p.plan,
           status: estadoBonito,
           registeredBy: p.creadoPor?.username ?? "Sistema",
+          creadoEn: p.creadoEn,  
+          actualizadoEn: p.actualizadoEn, 
           history: [],
         }
       })
@@ -401,6 +405,8 @@ export default function PatientManagementModule() {
           plan: p.plan,
           status: estadoBonito,
           registeredBy: p.creadoPor?.username ?? "Sistema",
+          creadoEn: p.creadoEn,
+          actualizadoEn: p.actualizadoEn,
           history: [],
         };
       });
@@ -1385,10 +1391,28 @@ export default function PatientManagementModule() {
           <div className="glass-effect rounded-2xl p-8 bg-white/95 backdrop-blur-sm border border-white/20 shadow-md">
             <h3 className="text-2xl font-bold text-purple-800 mb-6">Historial de Movimientos</h3>
             <div className="space-y-4">
-              {/* TODO: Implementar historial */}
-              <p className="text-gray-500">No hay movimientos registrados</p>
+              <p className="text-gray-700">
+                <strong>Creado el:</strong>{" "}
+                {selectedPatient.creadoEn
+                  ? new Date(selectedPatient.creadoEn).toLocaleString("es-AR", {
+                      dateStyle: "short",
+                      timeStyle: "short",
+                    })
+                  : "-"}
+              </p>
+              <p className="text-gray-700">
+                <strong>Última actualización:</strong>{" "}
+                {selectedPatient.actualizadoEn
+                  ? new Date(selectedPatient.actualizadoEn).toLocaleString("es-AR", {
+                      dateStyle: "short",
+                      timeStyle: "short",
+                    })
+                  : "-"}
+              </p>
             </div>
           </div>
+
+
         </div>
       </div>
     )
