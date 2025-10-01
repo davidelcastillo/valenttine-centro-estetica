@@ -75,6 +75,9 @@ export async function GET(
             prestaciones: p.prestaciones.map((x) => x.prestacion),
             horarioTrabajo: horario,
             movimientos: [], // cuando agregues auditoría, llenar
+              // --- NUEVOS CAMPOS ---
+            creadoEn: p.creadoEn.toISOString(),
+            actualizadoEn: p.actualizadoEn.toISOString(),
         };
 
         return NextResponse.json(ProfesionalDetalleDto.parse(dto));

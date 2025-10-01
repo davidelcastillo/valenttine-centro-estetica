@@ -24,7 +24,7 @@ const fmtAaaaMmDdHHmm = (iso?: string) => {
   const dd = String(d.getDate()).padStart(2, '0');
   const HH = String(d.getHours()).padStart(2, '0');
   const MM = String(d.getMinutes()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd} ${HH}:${MM}`;
+  return `${yyyy}/${mm}/${dd}, ${HH}:${MM}`;
 };
 const fmtPhone = (cel?: string | null) => {
   if (!cel) return '-';
@@ -70,7 +70,7 @@ export default function Page({ params }: { params: { id: string } }) {
         <div className="glass-effect rounded-2xl p-8">
           <h2 className="text-2xl font-bold text-red-600">{error}</h2>
           <button onClick={() => router.push('/profesionales')}
-            className="mt-4 bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-xl">
+            className="mt-4 bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-xl cursor-pointer">
             Volver
           </button>
         </div>
@@ -202,8 +202,19 @@ export default function Page({ params }: { params: { id: string } }) {
 
         {/* 5. Historial de Movimientos */}
         <Card title="Historial de Movimientos" violet>
-          {prof.movimientos.length ? (
-            <ul className="space-y-3">
+          <div className="space-y-3">
+            <p className="text-gray-700">
+              <strong>Creado el:</strong>{" "}
+              {prof.creadoEn ? fmtAaaaMmDdHHmm(prof.creadoEn) : "-"}
+            </p>
+            <p className="text-gray-700">
+              <strong>Última actualización:</strong>{" "}
+              {prof.actualizadoEn ? fmtAaaaMmDdHHmm(prof.actualizadoEn) : "-"}
+            </p>
+          </div>
+
+          {prof.movimientos.length > 0 && (
+            <ul className="space-y-3 mt-4">
               {prof.movimientos.map((m, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <span className="mt-1 w-3 h-3 rounded-full bg-purple-500 inline-block" />
@@ -216,8 +227,9 @@ export default function Page({ params }: { params: { id: string } }) {
                 </li>
               ))}
             </ul>
-          ) : <p className="text-gray-500">Sin movimientos registrados.</p>}
+          )}
         </Card>
+
       </div>
     </div>
   );
@@ -225,7 +237,7 @@ export default function Page({ params }: { params: { id: string } }) {
 
 function Card({ title, children, violet }: { title: string; children: React.ReactNode; violet?: boolean }) {
   return (
-    <div className="glass-effect rounded-2xl p-8">
+    <div className="glass-effect rounded-2xl p-8 shadow-md">
       <h3 className={`text-2xl font-bold mb-6 ${violet ? 'text-purple-700' : 'text-purple-800'}`}>{title}</h3>
       {children}
     </div>
