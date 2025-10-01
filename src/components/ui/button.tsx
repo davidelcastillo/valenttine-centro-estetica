@@ -19,6 +19,7 @@ export const buttonVariants = cva(
         ghost: 'text-gray-700 hover:bg-gray-100',
         azul: 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg hover:shadow-xl',
         destructive: 'bg-red-600 text-white hover:bg-red-700',
+        purple: 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg hover:shadow-xl',
       },
       size: {
         sm: 'h-8 px-3 py-2 text-sm rounded-lg',
@@ -52,7 +53,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         ref={ref as any}
         data-slot="button"
-        className={cn(buttonVariants({ variant, size, fullWidth, className }))}
+        className={cn(buttonVariants({ variant, size, fullWidth }), className)}
         {...props}
       />
     )
