@@ -141,6 +141,19 @@ export default function PatientManagementModule() {
     }
   }
 
+  // ESTO ES PARA VER SOLO 10 POR PAGINA -------------------------------------------------------##############################################
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  // calculos
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = patients.slice(indexOfFirstItem, indexOfLastItem) ?? [];
+  // total de paginas
+  const totalPages = Math.ceil((patients.length ?? 0) / itemsPerPage);
+
+  // --------------------------------------------------------------------------------------------#############################################
+
+
   // Estados para las opciones de los selects
   const [provincias, setProvincias] = useState<Provincia[]>([])
   const [localidades, setLocalidades] = useState<Localidad[]>([])
@@ -1158,7 +1171,7 @@ export default function PatientManagementModule() {
               </tr>
             </thead>
             <tbody>
-              {patients.map((patient, index) => (
+              {currentItems.map((patient, index) => (
                 <tr key={patient.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                   <td className="px-6 py-4 font-semibold text-purple-800">{patient.id}</td>
                   <td className="px-6 py-4">
@@ -1212,6 +1225,30 @@ export default function PatientManagementModule() {
             </tbody>
           </table>
         </div>
+      </div>
+      {/* Botones Patients Table */}
+      <div className="flex justify-between items-center p-4">
+        <button
+          onClick={() => setCurrentPage((prev) => prev - 1)}
+          disabled={currentPage === 1}
+          className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg 
+                    disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        >
+          Anterior
+        </button>
+
+        <span className="text-sm text-gray-600">
+          Página {currentPage} de {totalPages}
+        </span>
+
+        <button
+          onClick={() => setCurrentPage((prev) => prev + 1)}
+          disabled={currentPage === totalPages || totalPages === 0}
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg 
+                    hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        >
+          Siguiente
+        </button>
       </div>
     </div>
   )

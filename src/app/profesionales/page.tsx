@@ -36,6 +36,19 @@ export default function Page() {
   const filtrosValidos = dniOk && nombreRegexOk && nombreLenOk && matriculaOk && provinciaOk;
   const hayAlguno = [dni, nombre, matricula, especialidad, provinciaNombre].some(v => String(v).trim() !== '');
 
+  // ESTO ES PARA VER SOLO 10 POR PAGINA -------------------------------------------------------##############################################
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // calculos
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = data?.items.slice(indexOfFirstItem, indexOfLastItem) ?? [];
+
+  // total de paginas
+  const totalPages = Math.ceil((data?.items.length ?? 0) / itemsPerPage);
+  // --------------------------------------------------------------------------------------------#############################################
+
   const refresh = async () => {
     try {
       setLoading(true);
@@ -238,7 +251,7 @@ export default function Page() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.items.map((p, i) => (
+                  {currentItems.map((p, i) => (
                     <tr key={p.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <TD className="font-semibold text-purple-800">{`PROF-${p.id}`}</TD>
                       <TD><div className="font-medium text-gray-900">{p.nombre} {p.apellido}</div></TD>
@@ -250,17 +263,16 @@ export default function Page() {
                         <div className="flex space-x-2">
                           <Link
                             href={`/profesionales/${p.id}`}
-                            className="bg-purple-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-purple-600 transition-colors"
+                            className="bg-purple-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-purple-600 transition-colors cursor-pointer"
                           >
                             Ver
                           </Link>
                           <Link
                             href={`/profesionales/${p.id}/editar`}
-                            className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-600 transition-colors"
+                            className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-600 transition-colors cursor-pointer"
                           >
                             Editar
-                            </Link>
-                          
+                          </Link>
                         </div>
                       </TD>
                     </tr>
@@ -272,6 +284,31 @@ export default function Page() {
             <div className="p-6 text-gray-700">No se encontraron profesionales con los criterios ingresados</div>
           )
         )}
+      </div>
+
+      {/* Botones Tabla */}
+      <div className="flex justify-between items-center p-4">
+        <button
+          onClick={() => setCurrentPage((prev) => prev - 1)}
+          disabled={currentPage === 1}
+          className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg 
+                    disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        >
+          Anterior
+        </button>
+
+        <span className="text-sm text-gray-600">
+          Página {currentPage} de {totalPages}
+        </span>
+
+        <button
+          onClick={() => setCurrentPage((prev) => prev + 1)}
+          disabled={currentPage === totalPages || totalPages === 0}
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg 
+                    hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        >
+          Siguiente
+        </button>
       </div>
     </div>
   );
