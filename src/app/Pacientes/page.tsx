@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { PacienteDTO } from "@/lib/types/pacientes.dto"
 import Link from "next/link";
+import { Toast } from "@/components/ui/toast"
 
 
 interface Patient {
@@ -26,9 +27,11 @@ interface Patient {
   plan?: string
   status: "Activo" | "Inactivo" | "Suspendido"
   registeredBy?: string
+  creadoEn?: string
+  actualizadoEn?: string
   history?: HistoryEvent[]
 }
-
+// CAMBIO : AGREGO createdAt y updatedAt -------------------------------------------------------------######################################
 interface HistoryEvent {
   date: string
   action: string
@@ -129,6 +132,8 @@ export default function PatientManagementModule() {
           plan: p.plan,
           status: estadoBonito,
           registeredBy: p.creadoPor?.username ?? "Sistema",
+          creadoEn: p.creadoEn,  
+          actualizadoEn: p.actualizadoEn, 
           history: [],
         }
       })
@@ -140,6 +145,19 @@ export default function PatientManagementModule() {
       setIsSearching(false)
     }
   }
+
+  // ESTO ES PARA VER SOLO 10 POR PAGINA -------------------------------------------------------##############################################
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  // calculos
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = patients.slice(indexOfFirstItem, indexOfLastItem) ?? [];
+  // total de paginas
+  const totalPages = Math.ceil((patients.length ?? 0) / itemsPerPage);
+
+  // --------------------------------------------------------------------------------------------#############################################
+
 
   // Estados para las opciones de los selects
   const [provincias, setProvincias] = useState<Provincia[]>([])
@@ -338,6 +356,11 @@ export default function PatientManagementModule() {
         memberNumber: "",
         plan: "",
       })
+
+      // nuevo cambio -----------------------------------------#############
+      await fetchPatients()
+      setCurrentView("list")
+      window.scrollTo({ top: 0, behavior: "smooth" })
     } catch (err) {
       console.error("Error:", err)
     }
@@ -388,9 +411,15 @@ export default function PatientManagementModule() {
           plan: p.plan,
           status: estadoBonito,
           registeredBy: p.creadoPor?.username ?? "Sistema",
+          creadoEn: p.creadoEn,
+          actualizadoEn: p.actualizadoEn,
           history: [],
         };
       });
+
+    mapped.sort((a: Patient, b: Patient) => 
+      new Date(b.creadoEn ?? 0).getTime() - new Date(a.creadoEn ?? 0).getTime()
+    )
 
 
       setPatients(mapped)
@@ -982,11 +1011,20 @@ export default function PatientManagementModule() {
               Cancelar
             </button>
             <button
-              onClick={(e) => handleSubmit(e)}
-              className={`px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all ${isFormValid()
-                ? "bg-purple-600 hover:bg-purple-700 text-white"
-                : "bg-gray-400 text-gray-600 cursor-not-allowed"
-                }`}
+              type="button"
+              onClick={async (e) => {
+                await handleSubmit(e)       // 1. Llama a la lógica de guardado
+                setCurrentView("list")      // 2. Vuelve a la lista cuando termina
+                window.scrollTo({ 
+                  top: 200,                 // ajustar según donde lo queremos ver
+                  behavior: "smooth"        // animación suave
+                })
+              }}
+              className={`px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all ${
+                isFormValid()
+                  ? "bg-purple-600 hover:bg-purple-700 text-white"
+                  : "bg-gray-400 text-gray-600 cursor-not-allowed"
+              }`}
               disabled={!isFormValid()}
             >
               Guardar
@@ -1019,7 +1057,7 @@ export default function PatientManagementModule() {
         <div className="flex items-center space-x-4">
           <button
             onClick={() => setCurrentView("create")}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-xl font-semibold flex items-center space-x-3 text-lg shadow-lg hover:shadow-xl transition-all"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-xl font-semibold flex items-center space-x-3 text-lg shadow-lg hover:shadow-xl transition-all cursor-pointer"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -1031,7 +1069,7 @@ export default function PatientManagementModule() {
 
       {/* Key Indicators */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="glass-effect rounded-2xl p-6 card-hover bg-white/95 backdrop-blur-sm border border-white/20">
+        <div className="glass-effect rounded-2xl p-6 card-hover bg-white/95 backdrop-blur-sm border border-white/20 shadow-md">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Pacientes Activos</p>
@@ -1045,7 +1083,7 @@ export default function PatientManagementModule() {
           </div>
         </div>
 
-        <div className="glass-effect rounded-2xl p-6 card-hover bg-white/95 backdrop-blur-sm border border-white/20">
+        <div className="glass-effect rounded-2xl p-6 card-hover bg-white/95 backdrop-blur-sm border border-white/20 shadow-md">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Pacientes Inactivos</p>
@@ -1059,7 +1097,7 @@ export default function PatientManagementModule() {
           </div>
         </div>
 
-        <div className="glass-effect rounded-2xl p-6 card-hover bg-white/95 backdrop-blur-sm border border-white/20">
+        <div className="glass-effect rounded-2xl p-6 card-hover bg-white/95 backdrop-blur-sm border border-white/20 shadow-md">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Pacientes Suspendidos</p>
@@ -1080,7 +1118,7 @@ export default function PatientManagementModule() {
       </div>
 
       {/* Filters Section */}
-      <div className="glass-effect rounded-2xl p-8 mb-8 card-hover bg-white/95 backdrop-blur-sm border border-white/20">
+      <div className="glass-effect rounded-2xl p-8 mb-8 card-hover bg-white/95 backdrop-blur-sm border border-white/20 shadow-md">
         <h3 className="text-xl font-semibold text-purple-800 mb-6">Filtros de Búsqueda</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div>
@@ -1124,14 +1162,14 @@ export default function PatientManagementModule() {
               // Recargar la lista original de pacientes
               fetchPatients()
             }}
-            className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+            className="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all cursor-pointer"
             disabled={isSearching}
           >
             Limpiar Filtros
           </button>
           <button
             onClick={handleSearch}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all cursor-pointer"
             disabled={isSearching}
           >
             {isSearching ? 'Buscando...' : 'Buscar Pacientes'}
@@ -1140,7 +1178,7 @@ export default function PatientManagementModule() {
       </div>
 
       {/* Patients Table */}
-      <div className="glass-effect rounded-2xl overflow-hidden card-hover bg-white/95 backdrop-blur-sm border border-white/20">
+      <div className="glass-effect rounded-2xl overflow-hidden card-hover bg-white/95 backdrop-blur-sm border border-white/20 shadow-md">
         <div className="bg-gradient-to-r from-purple-600 to-purple-400 p-6">
           <h3 className="text-xl font-bold text-white">Lista de Pacientes</h3>
         </div>
@@ -1158,7 +1196,7 @@ export default function PatientManagementModule() {
               </tr>
             </thead>
             <tbody>
-              {patients.map((patient, index) => (
+              {currentItems.map((patient, index) => (
                 <tr key={patient.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                   <td className="px-6 py-4 font-semibold text-purple-800">{patient.id}</td>
                   <td className="px-6 py-4">
@@ -1193,7 +1231,7 @@ export default function PatientManagementModule() {
                           setSelectedPatient(patient)
                           setCurrentView("detail")
                         }}
-                        className="bg-purple-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-purple-600 transition-colors"
+                        className="bg-purple-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-purple-600 transition-colors cursor-pointer"
                       >
                         Ver
                       </button>
@@ -1212,6 +1250,30 @@ export default function PatientManagementModule() {
             </tbody>
           </table>
         </div>
+      </div>
+      {/* Botones Patients Table */}
+      <div className="flex justify-between items-center p-4">
+        <button
+          onClick={() => setCurrentPage((prev) => prev - 1)}
+          disabled={currentPage === 1}
+          className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg 
+                    disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        >
+          Anterior
+        </button>
+
+        <span className="text-sm text-gray-600">
+          Página {currentPage} de {totalPages}
+        </span>
+
+        <button
+          onClick={() => setCurrentPage((prev) => prev + 1)}
+          disabled={currentPage === totalPages || totalPages === 0}
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg 
+                    hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        >
+          Siguiente
+        </button>
       </div>
     </div>
   )
@@ -1243,7 +1305,7 @@ export default function PatientManagementModule() {
           <div className="flex space-x-4">
             <button
               onClick={() => setCurrentView("list")}
-              className="bg-gradient-to-r from-gray-400 to-gray-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all font-semibold"
+              className="bg-gradient-to-r from-gray-400 to-gray-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all font-semibold cursor-pointer"
             >
               Volver
             </button>
@@ -1252,7 +1314,7 @@ export default function PatientManagementModule() {
 
         {/* Patient Details */}
         <div className="space-y-8">
-          <div className="glass-effect rounded-2xl p-8 bg-white/95 backdrop-blur-sm border border-white/20">
+          <div className="glass-effect rounded-2xl p-8 bg-white/95 backdrop-blur-sm border border-white/20 shadow-md">
             <h3 className="text-2xl font-bold text-purple-800 mb-6">Información del Paciente</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
@@ -1313,7 +1375,7 @@ export default function PatientManagementModule() {
             </div>
           </div>
 
-          <div className="glass-effect rounded-2xl p-8 bg-white/95 backdrop-blur-sm border border-white/20">
+          <div className="glass-effect rounded-2xl p-8 bg-white/95 backdrop-blur-sm border border-white/20 shadow-md">
             <h3 className="text-2xl font-bold text-purple-800 mb-6">Dirección</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
@@ -1345,13 +1407,31 @@ export default function PatientManagementModule() {
             </div>
           </div>
 
-          <div className="glass-effect rounded-2xl p-8 bg-white/95 backdrop-blur-sm border border-white/20">
+          <div className="glass-effect rounded-2xl p-8 bg-white/95 backdrop-blur-sm border border-white/20 shadow-md">
             <h3 className="text-2xl font-bold text-purple-800 mb-6">Historial de Movimientos</h3>
             <div className="space-y-4">
-              {/* TODO: Implementar historial */}
-              <p className="text-gray-500">No hay movimientos registrados</p>
+              <p className="text-gray-700">
+                <strong>Creado el:</strong>{" "}
+                {selectedPatient.creadoEn
+                  ? new Date(selectedPatient.creadoEn).toLocaleString("es-AR", {
+                      dateStyle: "short",
+                      timeStyle: "short",
+                    })
+                  : "-"}
+              </p>
+              <p className="text-gray-700">
+                <strong>Última actualización:</strong>{" "}
+                {selectedPatient.actualizadoEn
+                  ? new Date(selectedPatient.actualizadoEn).toLocaleString("es-AR", {
+                      dateStyle: "short",
+                      timeStyle: "short",
+                    })
+                  : "-"}
+              </p>
             </div>
           </div>
+
+
         </div>
       </div>
     )

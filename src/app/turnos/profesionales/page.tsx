@@ -58,7 +58,7 @@ export default function ProfessionalsPage() {
             key={p.id}
             className="glass-effect rounded-2xl p-8 bg-white/95 backdrop-blur-sm border border-white/20"
           >
-            <div className="bg-gradient-to-r from-gray-600 to-gray-500 text-white p-4 rounded-t-xl -m-8 mb-6">
+            <div className="bg-gradient-to-r from-purple-600 to-purple-400 p-6 text-white p-4 rounded-t-xl -m-8 mb-6">
               <h3 className="text-xl font-bold">{p.nombreCompleto}</h3>
             </div>
 
@@ -85,7 +85,7 @@ export default function ProfessionalsPage() {
 
                 <button
                   onClick={() => router.push(`/turnos/calendario/${p.id}`)}
-                  className="bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-yellow-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                  className="bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
                 >
                   ELEGIR PROFESIONAL
                 </button>

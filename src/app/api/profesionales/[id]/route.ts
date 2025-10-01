@@ -75,6 +75,9 @@ export async function GET(
             prestaciones: p.prestaciones.map((x) => x.prestacion),
             horarioTrabajo: horario,
             movimientos: [], // cuando agregues auditoría, llenar
+              // --- NUEVOS CAMPOS ---
+            creadoEn: p.creadoEn.toISOString(),
+            actualizadoEn: p.actualizadoEn.toISOString(),
         };
 
         return NextResponse.json(ProfesionalDetalleDto.parse(dto));
@@ -103,7 +106,7 @@ export async function PUT(
         const me = token ? verifyJwt<JwtUser>(token) : null;
         if (!me)
             return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-        if (me.role !== "RECEPCIONISTA")
+        if (me.role !== "GERENTE")
             return NextResponse.json({ error: "No autorizado" }, { status: 403 });
 
         const raw = await req.json();

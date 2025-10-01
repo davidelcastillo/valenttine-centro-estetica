@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
         // Política de roles
-        if (me.role !== "RECEPCIONISTA") {
+        if (me.role !== "GERENTE") {
             return NextResponse.json({ error: "No autorizado" }, { status: 403 });
         }
 
