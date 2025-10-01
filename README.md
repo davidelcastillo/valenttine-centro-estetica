@@ -49,6 +49,7 @@ Este proyecto es un **ERP (Enterprise Resource Planning)** para un Centro de Est
 6️⃣ **Levantar el proyecto en modo desarrollo**
  <br>
   `npm run dev`
+---
 
 
 
