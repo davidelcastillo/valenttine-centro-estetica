@@ -15,32 +15,40 @@ Este proyecto es un **ERP (Enterprise Resource Planning)** para un Centro de Est
 
 ### ⚙️ Pasos de Configuración Inicial
 
-A. **Crear carpeta de trabajo**
+1️⃣ **Crear carpeta de trabajo**
  <br>
-   mkdir erp-centro-estetica
-   cd erp-centro-estetica
+   `mkdir erp-centro-estetica`
+    <br>
+   `cd erp-centro-estetica`
    <br>
-B. **Clonar el repositorio**
+---
+2️⃣ **Clonar el repositorio**
  <br>
-  git clone https://github.com/davidelcastillo/valenttine-centro-estetica.git
-  cd <nombre-del-repositorio>
+  `git clone https://github.com/davidelcastillo/valenttine-centro-estetica.git`
+   <br>
+  `cd <nombre-del-repositorio>`
  <br>
-C. **Instalar las dependencias**
+---
+3️⃣ **Instalar las dependencias**
    <br>
-  npm install
+  `npm install`
    <br>
-D. **Configurar variables de entorno**
+---
+4️⃣ **Configurar variables de entorno**
    <br>
   Crear un archivo .env en la raíz del proyecto para luego establecer la conexión
    <br>
-E. **Generar cliente de Prisma y aplicar migraciones**
+---
+5️⃣ **Generar cliente de Prisma y aplicar migraciones**
    <br>
-  npx prisma generate
-  npx prisma migrate deploy
+  `npx prisma generate`
    <br>
-F. **Levantar el proyecto en modo desarrollo**
+  `npx prisma migrate deploy`
+   <br>
+---
+6️⃣ **Levantar el proyecto en modo desarrollo**
  <br>
-  npm run dev
+  `npm run dev`
 
 
 
