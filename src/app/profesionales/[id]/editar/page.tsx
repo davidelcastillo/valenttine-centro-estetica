@@ -542,32 +542,62 @@ export default function EditProfesionalPage() {
                     <h2 className="text-violet-700 font-semibold mb-4">Datos Profesionales</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm text-gray-600 mb-1">Título Profesional *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.titulo} onChange={e => set('titulo', e.target.value)} />
-                            {errors.titulo && <p className="text-xs text-red-600 mt-1">{errors.titulo}</p>}
+                        <label className="block text-sm text-gray-600 mb-1">Título Profesional *</label>
+                        <input
+                            className="w-full border rounded-xl px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed"
+                            value={form.titulo}
+                            readOnly
+                            tabIndex={-1}
+                        />
+                        {errors.titulo && <p className="text-xs text-red-600 mt-1">{errors.titulo}</p>}
                         </div>
+
                         <div>
-                            <label className="block text-sm text-gray-600 mb-1">Número de Matrícula *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.matricula} onChange={e => set('matricula', e.target.value.replace(/\D/g, ''))} />
-                            {errors.matricula && <p className="text-xs text-red-600 mt-1">{errors.matricula}</p>}
+                        <label className="block text-sm text-gray-600 mb-1">Número de Matrícula *</label>
+                        <input
+                            className="w-full border rounded-xl px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed"
+                            value={form.matricula}
+                            readOnly
+                            tabIndex={-1}
+                        />
+                        {errors.matricula && <p className="text-xs text-red-600 mt-1">{errors.matricula}</p>}
                         </div>
+
                         <div>
-                            <label className="block text-sm text-gray-600 mb-1">Especialidad *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.especialidad} onChange={e => set('especialidad', e.target.value)} />
-                            {errors.especialidad && <p className="text-xs text-red-600 mt-1">{errors.especialidad}</p>}
+                        <label className="block text-sm text-gray-600 mb-1">Especialidad *</label>
+                        <input
+                            className="w-full border rounded-xl px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed"
+                            value={form.especialidad}
+                            readOnly
+                            tabIndex={-1}
+                        />
+                        {errors.especialidad && <p className="text-xs text-red-600 mt-1">{errors.especialidad}</p>}
                         </div>
+
                         <div>
-                            <label className="block text-sm text-gray-600 mb-1">Universidad de Egreso *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.universidad} onChange={e => set('universidad', e.target.value)} />
-                            {errors.universidad && <p className="text-xs text-red-600 mt-1">{errors.universidad}</p>}
+                        <label className="block text-sm text-gray-600 mb-1">Universidad de Egreso *</label>
+                        <input
+                            className="w-full border rounded-xl px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed"
+                            value={form.universidad}
+                            readOnly
+                            tabIndex={-1}
+                        />
+                        {errors.universidad && <p className="text-xs text-red-600 mt-1">{errors.universidad}</p>}
                         </div>
+
                         <div>
-                            <label className="block text-sm text-gray-600 mb-1">Fecha de Graduación (DD/MM/AAAA) *</label>
-                            <input className="w-full border rounded-xl px-3 py-2" value={form.fechaGraduacion} onChange={e => set('fechaGraduacion', e.target.value)} />
-                            {errors.fechaGraduacion && <p className="text-xs text-red-600 mt-1">{errors.fechaGraduacion}</p>}
+                        <label className="block text-sm text-gray-600 mb-1">Fecha de Graduación (DD/MM/AAAA) *</label>
+                        <input
+                            className="w-full border rounded-xl px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed"
+                            value={form.fechaGraduacion}
+                            readOnly
+                            tabIndex={-1}
+                        />
+                        {errors.fechaGraduacion && <p className="text-xs text-red-600 mt-1">{errors.fechaGraduacion}</p>}
                         </div>
                     </div>
                 </section>
+
 
                 {/* DATOS LABORALES */}
                 <section className="bg-white/70 backdrop-blur rounded-2xl shadow p-5">
