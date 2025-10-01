@@ -22,18 +22,18 @@ Este proyecto es un **ERP (Enterprise Resource Planning)** para un Centro de Est
 3. **Clonar el repositorio**
   git clone https://github.com/davidelcastillo/valenttine-centro-estetica.git
   cd <nombre-del-repositorio>
-     <br>
+   <br>
 4. **Instalar las dependencias**
   npm install
    <br>
-6. **Configurar variables de entorno**
+5. **Configurar variables de entorno**
   Crear un archivo .env en la raíz del proyecto para luego establecer la conexión
    <br>
-5.**Generar cliente de Prisma y aplicar migraciones**
+6.**Generar cliente de Prisma y aplicar migraciones**
   npx prisma generate
   npx prisma migrate deploy
    <br>
-6.**Levantar el proyecto en modo desarrollo**
+7.**Levantar el proyecto en modo desarrollo**
   npm run dev
 
 
